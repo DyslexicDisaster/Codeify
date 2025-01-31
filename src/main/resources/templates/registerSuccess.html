@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Registration Successful</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{fragments/menu :: menu-bar}"></div>
+<div class="container mt-5">
+    <div class="alert alert-success" role="alert">
+        <h4 class="alert-heading">Registration Successful!</h4>
+        <p>
+            <span>Welcome to Listenify,</span>
+            <span th:text="${registeredUser.username}">user</span>!
+        </p>
+        <hr>
+        <p class="mb-0">
+            <span>Please</span>
+            <a>login</a>
+            <span>to continue.</span>
+        </p>
+    </div>
+</div>
+</body>
+</html>

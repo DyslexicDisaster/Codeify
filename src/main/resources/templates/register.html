@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Register - Listenify</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<div th:replace="~{fragments/menu :: menu-bar}"></div>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h3 class="text-center mb-0">Register for Codeify</h3>
+                </div>
+                <div class="card-body">
+                    <form action="/register" method="post" onsubmit="return validateForm()">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="username"
+                                   name="username"
+                                   required
+                                   autofocus>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email"
+                                   class="form-control"
+                                   id="email"
+                                   name="email"
+                                   required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password"
+                                   class="form-control"
+                                   id="password"
+                                   name="password"
+                                   required>
+                            <small class="text-muted">
+                                Password must contain at least 8 characters, one uppercase letter,
+                                one lowercase letter, one number, and one special character.
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="repeatPassword" class="form-label">Repeat password</label>
+                            <input type="password"
+                                   class="form-control"
+                                   id="repeatPassword"
+                                   name="repeatPassword"
+                                   required>
+                            <small class="text-muted">
+                                Must be same as the password above.
+                            </small>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Register</button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <p>
+                            Already have an account? <a href="/login">Login here</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function validateForm() {
+        const password = document.getElementById('password').value;
+        const passwordPattern = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$#!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+        if (!passwordPattern.test(password)) {
+            alert('Password must meet the specified requirements.');
+            return false;
+        }
+
+        if (password !== document.getElementById('repeatPassword').value) {
+            alert('Passwords do not match.');
+            return false;
+        }
+
+        return true;
+    }
+</script>
+</body>
+</html>

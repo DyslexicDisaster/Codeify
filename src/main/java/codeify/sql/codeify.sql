@@ -1,0 +1,15 @@
+DROP DATABASE IF EXISTS codeify;
+CREATE DATABASE IF NOT EXISTS codeify;
+
+USE codeify;
+
+-- Users Table
+DROP TABLE IF EXISTS users;
+CREATE TABLE users (
+   user_id INT PRIMARY KEY AUTO_INCREMENT,
+   username VARCHAR(50) UNIQUE NOT NULL,
+   email VARCHAR(100) UNIQUE NOT NULL,
+   password_hash VARCHAR(255) NOT NULL,
+   role ENUM('admin', 'user') DEFAULT 'user',
+   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

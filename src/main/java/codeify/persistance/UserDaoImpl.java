@@ -111,4 +111,13 @@ public class UserDaoImpl extends MySQLDao implements UserDao {
 
         return null;
     }
+
+    public boolean deleteUserByUsername(String username) throws SQLException {
+        String query = "DELETE FROM users WHERE username = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, username);
+            return stmt.executeUpdate() > 0;
+        }
+    }
 }

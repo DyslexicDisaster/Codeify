@@ -16,6 +16,12 @@ public class QuestionDaoImpl implements QuestionDao {
         this.mySQLDao = new MySQLDao(propertiesPath);
     }
 
+    /**
+     *
+     * @param languageId gets all questions from database for programming language based on id
+     * @return a list of questions
+     * @throws SQLException if there is error in getting questions
+     */
     @Override
     public List<Question> getQuestionsByLanguage(int languageId) throws SQLException {
         List<Question> questions = new ArrayList<>();
@@ -63,6 +69,11 @@ public class QuestionDaoImpl implements QuestionDao {
         return questions;
     }
 
+    /**
+     * gets all programming languages
+     * @return list of all the programming languages in database
+     * @throws SQLException error thrown if programming language doesn't exist
+     */
     @Override
     public List<ProgrammingLanguage> getAllProgrammingLanguages() throws SQLException {
         List<ProgrammingLanguage> languages = new ArrayList<>();

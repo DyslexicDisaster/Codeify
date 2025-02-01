@@ -16,7 +16,6 @@
         <h1 class="display-5 fw-bold mb-4">Practice Coding</h1>
         <p class="lead mb-5">Choose your preferred programming language and start solving challenges</p>
 
-        <!-- Language Selector -->
         <div class="language-selector" th:if="${not #lists.isEmpty(languages)}">
             <form th:action="@{/questions}" method="get" class="d-flex align-items-center justify-content-between">
                 <label for="languageSelect" class="fs-5 mb-0">

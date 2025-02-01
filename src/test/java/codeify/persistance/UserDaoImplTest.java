@@ -17,11 +17,13 @@ class UserDaoImplTest {
 
     private static UserDaoImpl userDao;
 
+    // This method is executed before each test
     @BeforeEach
     void setUp() {
         userDao = new UserDaoImpl("database_test.properties");
     }
 
+    // This test checks if the register method registers a new user
     @Test
     void register() throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
         User user = new User(0, "newUser", "password", "", "newuser@example.com", LocalDate.now(), role.user);
@@ -33,6 +35,7 @@ class UserDaoImplTest {
         assertEquals(user.getUsername(), loggedInUser.getUsername());
     }
 
+    // This test checks if the login method logs in a user
     @Test
     void login() throws SQLException {
         String username = "newUser";
@@ -43,6 +46,7 @@ class UserDaoImplTest {
         assertEquals(username, user.getUsername());
     }
 
+    // This method is executed after all tests
     @AfterAll
     static void tearDown() throws SQLException {
         userDao.deleteUserByUsername("newUser");

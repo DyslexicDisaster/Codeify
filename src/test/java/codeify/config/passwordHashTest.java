@@ -13,6 +13,7 @@ class passwordHashTest {
     private String salt;
     private String hashedPassword;
 
+    // This method is executed before each test
     @BeforeEach
     void setUp() throws NoSuchAlgorithmException, InvalidKeySpecException {
         password = "SecurePassword123";
@@ -20,6 +21,7 @@ class passwordHashTest {
         hashedPassword = passwordHash.hashPassword(password, salt);
     }
 
+    // This test checks if the generateSalt method generates a new salt
     @Test
     void testGenerateSalt() throws NoSuchAlgorithmException {
         String newSalt = passwordHash.generateSalt();
@@ -27,6 +29,7 @@ class passwordHashTest {
         assertNotEquals(salt, newSalt, "New salt should not be the same as the old salt");
     }
 
+    // This test checks if the hashPassword method generates a new hashed password
     @Test
     void testHashPassword() throws NoSuchAlgorithmException, InvalidKeySpecException {
         String newHashedPassword = passwordHash.hashPassword(password, salt);
@@ -34,6 +37,7 @@ class passwordHashTest {
         assertEquals(hashedPassword, newHashedPassword, "New hashed password should not be the same as the old hashed password");
     }
 
+    // This test checks if the validatePassword method validates a password
     @Test
     void testValidatePassword() {
         assertTrue(passwordHash.validatePassword(password, hashedPassword, salt), "Password should be valid");

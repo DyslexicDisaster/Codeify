@@ -4,7 +4,6 @@ import codeify.business.User;
 import codeify.business.role;
 import codeify.config.passwordHash;
 
-import javax.management.relation.Role;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
@@ -59,8 +58,6 @@ public class UserDaoImpl extends MySQLDao implements UserDao {
 
             return stmt.executeUpdate() > 0;
 
-            // catching exceptions when user tries to insert a duplicate or trying to insert a
-            // foreign key value that doesn't exist or violating a check constraint on a column
         } catch (SQLIntegrityConstraintViolationException e) {
             System.out.println("A user with this email or username already exists.");
             return false;
@@ -71,7 +68,7 @@ public class UserDaoImpl extends MySQLDao implements UserDao {
     }
 
     @Override
-    public User login(String username, String password) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
+    public User login(String username, String password) throws SQLException {
         Connection conn = null;
         PreparedStatement stmt = null;
 

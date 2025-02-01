@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- * Custom error handler for handling unmapped routes or unexpected errors in the Listenify application.
+ * Custom error handler for handling unmapped routes or unexpected errors in the Codeify application.
  */
 @Controller
 public class ErrorHandler implements ErrorController {

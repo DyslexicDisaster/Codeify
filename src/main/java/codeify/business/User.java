@@ -21,7 +21,7 @@ public class User {
     private String salt;
     private String email;
     private LocalDate registrationDate;
-    private codeify.business.role role;
+    private role role;
 
     public User(String username, String password, String salt, String email, LocalDate registrationDate) {
         userId = 0;

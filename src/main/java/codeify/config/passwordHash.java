@@ -18,7 +18,6 @@ public class passwordHash {
      *
      * @return Base64 encoded salt string
      * @throws NoSuchAlgorithmException If the hashing algorithm isn't available
-     * @author Malikom12
      */
     public static String generateSalt() throws NoSuchAlgorithmException {
         SecureRandom random = new SecureRandom();
@@ -36,7 +35,6 @@ public class passwordHash {
      * @return Base64 encoded hash of the password
      * @throws NoSuchAlgorithmException If the hashing algorithm isn't available
      * @throws InvalidKeySpecException If there's an error with the key specification
-     * @author Malikom12
      */
     public static String hashPassword(String password, String salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
         byte[] saltBytes = Base64.getDecoder().decode(salt);

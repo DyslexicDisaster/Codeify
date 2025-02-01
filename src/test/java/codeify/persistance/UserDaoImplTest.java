@@ -3,7 +3,6 @@ package codeify.persistance;
 import codeify.business.User;
 import codeify.business.role;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +19,6 @@ class UserDaoImplTest {
 
     @BeforeEach
     void setUp() {
-        // Initialize the UserDaoImpl with a test database
         userDao = new UserDaoImpl("database_test.properties");
     }
 
@@ -30,18 +28,16 @@ class UserDaoImplTest {
         boolean isRegistered = userDao.register(user);
         assertTrue(isRegistered);
 
-        // Check if the user can now login
         User loggedInUser = userDao.login(user.getUsername(), user.getPassword());
         assertNotNull(loggedInUser);
         assertEquals(user.getUsername(), loggedInUser.getUsername());
     }
 
     @Test
-    void login() throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
+    void login() throws SQLException {
         String username = "newUser";
         String password = "password";
 
-        // Assuming the test user already exists in the database
         User user = userDao.login(username, password);
         assertNotNull(user);
         assertEquals(username, user.getUsername());

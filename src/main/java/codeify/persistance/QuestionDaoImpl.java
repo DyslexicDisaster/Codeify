@@ -20,7 +20,7 @@ public class QuestionDaoImpl implements QuestionDao {
      *
      * @param languageId gets all questions from database for programming language based on id
      * @return a list of questions
-     * @throws SQLException
+     * @throws SQLException if there is error in getting questions
      */
     @Override
     public List<Question> getQuestionsByLanguage(int languageId) throws SQLException {
@@ -72,7 +72,7 @@ public class QuestionDaoImpl implements QuestionDao {
     /**
      * gets all programming languages
      * @return list of all the programming languages in database
-     * @throws SQLException
+     * @throws SQLException error thrown if programming language doesn't exist
      */
     @Override
     public List<ProgrammingLanguage> getAllProgrammingLanguages() throws SQLException {

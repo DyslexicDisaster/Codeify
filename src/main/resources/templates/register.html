@@ -43,7 +43,7 @@
             border-color: #00cc6a;
         }
         small {
-            color: #aaa;
+            color: var(--text-light);
         }
         a {
             color: var(--accent);
@@ -89,7 +89,7 @@
                                    name="password"
                                    placeholder="Enter a password"
                                    required>
-                            <small class="text-muted">
+                            <small class="mb-3">
                                 Password must contain at least 8 characters, one uppercase letter,
                                 one lowercase letter, one number, and one special character.
                             </small>
@@ -102,7 +102,7 @@
                                    name="repeatPassword"
                                    placeholder="Repeat your password"
                                    required>
-                            <small class="text-muted">
+                            <small class="mb-3">
                                 Must be the same as the password above.
                             </small>
                         </div>

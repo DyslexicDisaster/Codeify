@@ -4,9 +4,55 @@
     <meta charset="UTF-8">
     <title>Register - Codeify</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --dark-bg: #1a1a1a;
+            --dark-secondary: #2d2d2d;
+            --accent: #00ff88;
+            --text-light: #e0e0e0;
+        }
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            min-height: 100vh;
+        }
+        .card {
+            background-color: var(--dark-secondary);
+            border: 1px solid #333;
+            color: var(--text-light);
+        }
+        .card-header, .card-body, .form-label, h3, label, p {
+            color: var(--text-light);
+        }
+        .form-control {
+            background-color: #333;
+            border: 1px solid #555;
+            color: var(--text-light);
+        }
+        .form-control::placeholder {
+            color: #bbb;
+        }
+        .btn-primary {
+            background-color: var(--accent);
+            border-color: var(--accent);
+            color: var(--dark-bg);
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            background-color: #00cc6a;
+            border-color: #00cc6a;
+        }
+        small {
+            color: #aaa;
+        }
+        a {
+            color: var(--accent);
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
 <div th:replace="~{fragments/menu :: menu-bar}"></div>
+
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
@@ -22,49 +68,48 @@
                                    class="form-control"
                                    id="username"
                                    name="username"
+                                   placeholder="Choose a username"
                                    required
                                    autofocus>
                         </div>
-
                         <div class="mb-3">
                             <label for="email" class="form-label">Email</label>
                             <input type="email"
                                    class="form-control"
                                    id="email"
                                    name="email"
+                                   placeholder="Enter your email"
                                    required>
                         </div>
-
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
                             <input type="password"
                                    class="form-control"
                                    id="password"
                                    name="password"
+                                   placeholder="Enter a password"
                                    required>
                             <small class="text-muted">
                                 Password must contain at least 8 characters, one uppercase letter,
                                 one lowercase letter, one number, and one special character.
                             </small>
                         </div>
-
                         <div class="mb-3">
-                            <label for="repeatPassword" class="form-label">Repeat password</label>
+                            <label for="repeatPassword" class="form-label">Repeat Password</label>
                             <input type="password"
                                    class="form-control"
                                    id="repeatPassword"
                                    name="repeatPassword"
+                                   placeholder="Repeat your password"
                                    required>
                             <small class="text-muted">
-                                Must be same as the password above.
+                                Must be the same as the password above.
                             </small>
                         </div>
-
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">Register</button>
                         </div>
                     </form>
-
                     <div class="text-center mt-3">
                         <p>
                             Already have an account? <a href="/login">Login here</a>
@@ -80,19 +125,17 @@
     function validateForm() {
         const password = document.getElementById('password').value;
         const passwordPattern = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$#!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-
         if (!passwordPattern.test(password)) {
             alert('Password must meet the specified requirements.');
             return false;
         }
-
         if (password !== document.getElementById('repeatPassword').value) {
             alert('Passwords do not match.');
             return false;
         }
-
         return true;
     }
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

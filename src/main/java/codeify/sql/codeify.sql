@@ -12,7 +12,7 @@ CREATE TABLE users (
    password VARCHAR(255) NOT NULL,
    role ENUM('admin', 'user') DEFAULT 'user',
    registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    salt VARCHAR(255) NOT NULL
+   salt VARCHAR(255) NOT NULL
 );
 
 -- Programming Languages Table

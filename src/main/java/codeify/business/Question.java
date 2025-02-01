@@ -2,26 +2,30 @@ package codeify.business;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class Question {
     private int id;
     private String title;
     private String description;
-    private int programmingLanguageId;
-    private String programmingLanguageName;
+    private ProgrammingLanguage programmingLanguage;
     private QuestionType questionType;
-    private DifficultyLevel difficulty;
+    private Difficulty difficulty;
     private String starterCode;
     private boolean aiSolutionRequired;
     private String correctAnswer;
 
     public enum QuestionType {
-        CODING, LOGIC
+        CODING,
+        LOGIC
     }
 
-    public enum DifficultyLevel {
-        EASY, MEDIUM, HARD
+    public enum Difficulty {
+        EASY,
+        MEDIUM,
+        HARD
     }
 }

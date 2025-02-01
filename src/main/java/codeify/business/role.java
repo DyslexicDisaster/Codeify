@@ -1,6 +1,6 @@
 package codeify.business;
 
-enum role {
-    USER,
-    ADMIN
+public enum role {
+    user,
+    admin
 }

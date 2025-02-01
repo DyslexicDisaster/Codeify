@@ -45,4 +45,13 @@ public class passwordHash {
         byte[] hashBytes = factory.generateSecret(spec).getEncoded();
         return Base64.getEncoder().encodeToString(hashBytes);
     }
+
+    public static boolean validatePassword(String password, String hashedPassword, String salt) {
+        try {
+            return hashPassword(password, salt).equals(hashedPassword);
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

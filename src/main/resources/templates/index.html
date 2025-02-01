@@ -5,50 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Codeify - Home</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --dark-bg: #1a1a1a;
-            --dark-secondary: #2d2d2d;
-            --accent: #00ff88;
-            --text-light: #e0e0e0;
-        }
-
-        body {
-            background-color: var(--dark-bg);
-            color: var(--text-light);
-            min-height: 100vh;
-        }
-
-        .hero-section {
-            padding: 5rem 0;
-            background: linear-gradient(45deg, var(--dark-secondary), var(--dark-bg));
-            border-bottom: 1px solid #333;
-        }
-
-        .feature-card {
-            background: var(--dark-secondary);
-            border-radius: 15px;
-            transition: transform 0.3s ease;
-            border: 1px solid #333;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .btn-accent {
-            background-color: var(--accent);
-            color: var(--dark-bg);
-            font-weight: 600;
-            padding: 0.8rem 2rem;
-            border-radius: 8px;
-        }
-
-        .btn-accent:hover {
-            background-color: #00cc6a;
-            color: var(--dark-bg);
-        }
-    </style>
+    <link href="/css/common.css" rel="stylesheet">
 </head>
 <body>
 <div th:replace="~{fragments/menu :: menu-bar}"></div>
@@ -88,7 +45,7 @@
 
 <footer class="bg-dark-secondary py-4 mt-auto">
     <div class="container text-center">
-        <p class="mb-0">&copy; 2024 CodeMaster. All rights reserved.</p>
+        <p class="mb-0">&copy; 2024 Codeify. All rights reserved.</p>
     </div>
 </footer>
 

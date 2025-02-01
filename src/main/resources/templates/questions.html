@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practice Coding - Codeify</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --dark-bg: #1a1a1a;
+            --dark-secondary: #2d2d2d;
+            --accent: #00ff88;
+            --text-light: #e0e0e0;
+            --border-color: #333;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            min-height: 100vh;
+        }
+
+        .practice-section {
+            padding: 3rem 0;
+            background: linear-gradient(45deg, var(--dark-secondary), var(--dark-bg));
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .language-selector {
+            background: var(--dark-secondary);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .custom-select {
+            background: var(--dark-secondary);
+            border: 2px solid var(--accent);
+            color: var(--text-light);
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .custom-select:hover {
+            border-color: #00cc6a;
+        }
+
+        .accordion-item {
+            background: var(--dark-secondary);
+            border: 1px solid var(--border-color);
+            margin-bottom: 1rem;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .accordion-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .accordion-button {
+            background: var(--dark-secondary);
+            color: var(--text-light);
+            padding: 1.2rem 1.5rem;
+        }
+
+        .accordion-button:not(.collapsed) {
+            background: var(--dark-bg);
+            color: var(--accent);
+        }
+
+        .accordion-button::after {
+            background-color: var(--accent);
+            border-radius: 50%;
+        }
+
+        .accordion-body {
+            background: var(--dark-bg);
+            color: var(--text-light);
+            padding: 1.5rem;
+        }
+
+        .badge {
+            padding: 0.5em 1em;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .question-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .attempt-btn {
+            background-color: var(--accent);
+            color: var(--dark-bg);
+            font-weight: 600;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .attempt-btn:hover {
+            background-color: #00cc6a;
+            transform: translateY(-2px);
+        }
+
+        .progress {
+            height: 8px;
+            background: var(--dark-bg);
+            border-radius: 4px;
+        }
+
+        .progress-bar {
+            background: var(--accent);
+        }
+
+        .status-not-started { background-color: #6c757d; }
+        .status-in-progress { background-color: #ffc107; color: #000; }
+        .status-completed { background-color: var(--accent); color: var(--dark-bg); }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/menu :: menu-bar}"></div>
+
+<section class="practice-section">
+    <div class="container">
+        <h1 class="display-5 fw-bold mb-4">Practice Coding</h1>
+        <p class="lead mb-5">Choose your preferred programming language and start solving challenges</p>
+
+        <!-- Language Selector -->
+        <div class="language-selector" th:if="${not #lists.isEmpty(languages)}">
+            <form th:action="@{/questions}" method="get" class="d-flex align-items-center justify-content-between">
+                <label for="languageSelect" class="fs-5 mb-0">
+                    <i class="fas fa-code me-2"></i>Programming Language
+                </label>
+                <select id="languageSelect" name="languageId"
+                        class="custom-select"
+                        onchange="this.form.submit()">
+                    <option th:each="lang : ${languages}"
+                            th:value="${lang.id}"
+                            th:text="${lang.name}"
+                            th:selected="${selectedLanguage != null && selectedLanguage.id == lang.id}">
+                    </option>
+                </select>
+            </form>
+        </div>
+
+        <div class="language-selector" th:if="${selectedLanguage != null}">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Overall Progress</h5>
+                <span class="badge status-completed">65%</span>
+            </div>
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" style="width: 65%"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <div class="accordion" id="questionsAccordion" th:if="${not #lists.isEmpty(questions)}">
+            <div class="accordion-item" th:each="question, questionStat : ${questions}">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse"
+                            th:data-bs-target="'#collapse' + ${questionStat.index}">
+                        <div class="question-title">
+                            <span class="fs-5" th:text="${question.title}">Question Title</span>
+                            <div class="ms-auto d-flex gap-2">
+                                <span class="badge"
+                                      th:with="diffClass=${
+                                        question.difficulty.name() == 'EASY' ? 'bg-success' :
+                                        question.difficulty.name() == 'MEDIUM' ? 'bg-warning text-dark' :
+                                        question.difficulty.name() == 'HARD' ? 'bg-danger' : ''}"
+                                      th:class="${'badge ' + diffClass}"
+                                      th:text="${question.difficulty}">DIFFICULTY</span>
+                                <span class="badge bg-info">
+                                    <i class="fas fa-star me-1"></i>100 pts
+                                </span>
+                                <span class="badge status-not-started">Not Started</span>
+                            </div>
+                        </div>
+                    </button>
+                </h2>
+                <div th:id="'collapse' + ${questionStat.index}" class="accordion-collapse collapse">
+                    <div class="accordion-body">
+                        <p class="mb-4" th:text="${question.description}">Question Description</p>
+                        <div class="d-flex justify-content-end">
+                            <a th:href="@{'/questions/' + ${question.id} + '/attempt'}"
+                               class="attempt-btn btn">
+                                <i class="fas fa-code me-2"></i>Start Challenge
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="language-selector text-center" th:if="${#lists.isEmpty(questions) and not #lists.isEmpty(languages)}">
+            <h4 class="mb-3">No Questions Available</h4>
+            <p class="mb-0">There are currently no questions available for the selected programming language. Please try selecting a different language or check back later.</p>
+        </div>
+    </div>
+</section>
+
+<footer class="py-4 mt-auto" style="background: var(--dark-secondary);">
+    <div class="container text-center">
+        <p class="mb-0">&copy; 2024 Codeify. All rights reserved.</p>
+    </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

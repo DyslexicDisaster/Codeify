@@ -1,8 +1,10 @@
 package codeify.persistance;
 
 import codeify.business.User;
+import codeify.business.role;
 import codeify.config.passwordHash;
 
+import javax.management.relation.Role;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
@@ -66,5 +68,47 @@ public class UserDaoImpl extends MySQLDao implements UserDao {
             if (stmt != null) stmt.close();
             if (conn != null) conn.close();
         }
+    }
+
+    @Override
+    public User login(String username, String password) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = getConnection();
+            if (conn == null) {
+                throw new SQLException("Unable to connect to the database!");
+            }
+
+            String query = "SELECT * FROM Users WHERE username = ?";
+            stmt = conn.prepareStatement(query);
+            stmt.setString(1, username);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                String salt = rs.getString("salt");
+                String hashedPassword = rs.getString("password");
+                role userRole = role.valueOf(rs.getString("role"));
+                LocalDate regDate = rs.getDate("registration_date").toLocalDate();
+
+                if (passwordHash.validatePassword(password, hashedPassword, salt)) {
+                    return new User(
+                            rs.getInt("user_id"),
+                            rs.getString("username"),
+                            hashedPassword,
+                            salt,
+                            rs.getString("email"),
+                            regDate,
+                            userRole
+                    );
+                }
+            }
+        } finally {
+            if (stmt != null) stmt.close();
+            if (conn != null) conn.close();
+        }
+
+        return null;
     }
 }

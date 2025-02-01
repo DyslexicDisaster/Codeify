@@ -2,6 +2,7 @@ package codeify.controllers;
 
 import codeify.business.User;
 import codeify.persistance.UserDaoImpl;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.ui.Model;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -17,6 +18,16 @@ import java.time.LocalDate;
 @Slf4j
 @Controller
 public class UserController {
+
+    /**
+     * Handles user registration.
+     *
+     * @param username   the username entered by the user.
+     * @param password   the password entered by the user.
+     * @param email      the email address entered by the user.
+     * @param model      the Model object used to pass data to the view.
+     * @return the name of the success or error view based on the operation result.
+     */
     @PostMapping("/register")
     public String registerUser(
             @RequestParam(name="username") String username,
@@ -48,6 +59,48 @@ public class UserController {
         } catch (SQLException | NoSuchAlgorithmException | InvalidKeySpecException e) {
             log.error("Error during registration for username {}: {}", username, e.getMessage());
             model.addAttribute("errMsg", "An error occurred during registration");
+            return "error";
+        }
+    }
+
+    /**
+     * Handles user login.
+     *
+     * @param username the username entered by the user.
+     * @param password the password entered by the user.
+     * @param model    the Model object used to pass data to the view.
+     * @param session  the HttpSession to store the logged-in user's information.
+     * @return the home page on successful login or an error view if login fails.
+     */
+    @PostMapping("/login")
+    public String loginUser(
+            @RequestParam(name="username") String username,
+            @RequestParam(name="password") String password,
+            Model model, HttpSession session) {
+
+        if (username.isBlank() || password.isBlank()) {
+            model.addAttribute("errMsg", "All fields must be filled out");
+            return "error";
+        }
+
+        UserDao userDao = new UserDaoImpl("database.properties");
+
+        try {
+            User user = userDao.login(username, password);
+            if (user == null) {
+                String message = "Invalid username/password combination";
+                model.addAttribute("message", message);
+                log.warn("Failed login attempt for username {}", username);
+                return "loginFailed";
+            }
+
+            session.setAttribute("loggedInUser", user);
+            log.info("User '{}' logged in successfully", username);
+            return "redirect:/";
+
+        } catch (SQLException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+            log.error("Error during login for username {}: {}", username, e.getMessage());
+            model.addAttribute("errMsg", "An error occurred during login");
             return "error";
         }
     }

@@ -8,4 +8,6 @@ import java.sql.SQLException;
 
 public interface UserDao {
     boolean register(User user) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException;
+
+    User login(String username, String password) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException;
 }

@@ -30,6 +30,6 @@ public class User {
         this.salt = salt;
         this.email = email;
         this.registrationDate = registrationDate;
-        this.role = role.USER;
+        this.role = role.user;
     }
 }

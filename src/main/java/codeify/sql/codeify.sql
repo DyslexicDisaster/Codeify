@@ -53,14 +53,19 @@ CREATE TABLE user_progress (
                                FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
 );
 
--- Leaderboard Table (Tracks Rankings)
+-- Leaderboard Table (Tracks Rankings per Language)
 CREATE TABLE leaderboard (
                              id INT AUTO_INCREMENT PRIMARY KEY,
-                             user_id INT NOT NULL UNIQUE,
+                             user_id INT NOT NULL,
+                             language_id INT NOT NULL,
                              total_score INT DEFAULT 0,
+                             rank INT NOT NULL,
                              last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                             FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+                             FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+                             FOREIGN KEY (language_id) REFERENCES programming_languages(id) ON DELETE CASCADE,
+                             UNIQUE (user_id, language_id) -- Ensures a user has only one rank per language
 );
+
 
 -- Blog Posts Table (Community Discussion)
 CREATE TABLE blog_posts (

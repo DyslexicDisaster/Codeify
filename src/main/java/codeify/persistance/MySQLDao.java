@@ -12,9 +12,6 @@ public class MySQLDao {
     private Properties properties = new Properties();
     private Connection conn;
 
-    public MySQLDao() {
-    }
-
     /**
      * Constructor that loads properties from a file.
      *
@@ -26,7 +23,6 @@ public class MySQLDao {
                 throw new IOException("Property file '" + propFilename + "' not found in the classpath.");
             }
             properties.load(input);
-            // Debugging loaded properties
             System.out.println("Loaded properties: " + properties);
         } catch (IOException e) {
             System.err.println("Error loading properties: " + e.getMessage());
@@ -55,12 +51,6 @@ public class MySQLDao {
                 String database = properties.getProperty("database");
                 String username = properties.getProperty("username");
                 String password = properties.getProperty("password", "");
-
-                // Debugging logs
-                System.out.println("Connecting with:");
-                System.out.println("Driver: " + driver);
-                System.out.println("URL: " + url + database);
-                System.out.println("Username: " + username);
 
                 Class.forName(driver);
                 conn = DriverManager.getConnection(url + database, username, password);

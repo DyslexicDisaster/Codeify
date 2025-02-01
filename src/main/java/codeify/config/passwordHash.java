@@ -18,7 +18,6 @@ public class passwordHash {
      *
      * @return Base64 encoded salt string
      * @throws NoSuchAlgorithmException If the hashing algorithm isn't available
-     * @author Malikom12
      */
     public static String generateSalt() throws NoSuchAlgorithmException {
         SecureRandom random = new SecureRandom();
@@ -36,7 +35,6 @@ public class passwordHash {
      * @return Base64 encoded hash of the password
      * @throws NoSuchAlgorithmException If the hashing algorithm isn't available
      * @throws InvalidKeySpecException If there's an error with the key specification
-     * @author Malikom12
      */
     public static String hashPassword(String password, String salt) throws NoSuchAlgorithmException, InvalidKeySpecException {
         byte[] saltBytes = Base64.getDecoder().decode(salt);
@@ -46,6 +44,14 @@ public class passwordHash {
         return Base64.getEncoder().encodeToString(hashBytes);
     }
 
+    /**
+     * Validates a password against a hashed password and salt.
+     *
+     * @param password The password to validate.
+     * @param hashedPassword The hashed password to validate against.
+     * @param salt The salt used to hash the password.
+     * @return True if the password is valid, false otherwise.
+     */
     public static boolean validatePassword(String password, String hashedPassword, String salt) {
         try {
             return hashPassword(password, salt).equals(hashedPassword);

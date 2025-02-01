@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 /**
- * A centralized exception handler for the Listenify application.
+ * A centralized exception handler for the Codeify application.
  */
 @ControllerAdvice
 public class AppExceptionHandler {

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import codeify.persistance.UserDao;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -34,7 +35,7 @@ public class UserController {
             @RequestParam(name="username") String username,
             @RequestParam(name="password") String password,
             @RequestParam(name="email") String email,
-            Model model) {
+            Model model, RedirectAttributes redirectAttributes) {
 
         if (username.isBlank() || password.isBlank() || email.isBlank()) {
             model.addAttribute("errMsg", "All fields must be filled out");
@@ -50,18 +51,17 @@ public class UserController {
             if (added) {
                 model.addAttribute("registeredUser", user);
                 log.info("User {} registered successfully", username);
-                return "registerSuccess";
             } else {
                 String message = "Registration failed for username: " + username;
                 model.addAttribute("message", message);
                 log.warn("Registration failed for username {}", username);
-                return "registerFailed";
             }
         } catch (SQLException | NoSuchAlgorithmException | InvalidKeySpecException e) {
             log.error("Error during registration for username {}: {}", username, e.getMessage());
             model.addAttribute("errMsg", "An error occurred during registration");
             return "error";
         }
+        return "redirect:/login";
     }
 
     /**

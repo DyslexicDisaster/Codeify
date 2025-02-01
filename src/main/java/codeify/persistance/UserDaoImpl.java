@@ -13,7 +13,15 @@ public class UserDaoImpl extends MySQLDao implements UserDao {
 
     public UserDaoImpl(String dbName) { super(dbName);}
 
-
+    /**
+     * Registers a new user with the given username, password, and email.
+     *
+     * @param user the User object to register.
+     * @return true if the user is successfully registered, false otherwise.
+     * @throws SQLException if a database access error occurs.
+     * @throws NoSuchAlgorithmException if the hashing algorithm is not available.
+     * @throws InvalidKeySpecException if the key specification is not valid.
+     */
     @Override
     public boolean register(User user) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
         Connection conn = null;
@@ -67,6 +75,14 @@ public class UserDaoImpl extends MySQLDao implements UserDao {
         }
     }
 
+    /**
+     * Logs in a user with the given username and password.
+     *
+     * @param username the username of the user to log in.
+     * @param password the password of the user to log in.
+     * @return a User object if the login is successful, null otherwise.
+     * @throws SQLException if a database access error occurs.
+     */
     @Override
     public User login(String username, String password) throws SQLException {
         Connection conn = null;
@@ -109,6 +125,13 @@ public class UserDaoImpl extends MySQLDao implements UserDao {
         return null;
     }
 
+    /**
+     * Updates the user's information in the database.
+     *
+     * @param username name of the User objects to update.
+     * @return true if the user is successfully updated, false otherwise.
+     * @throws SQLException if a database access error occurs.
+     */
     public boolean deleteUserByUsername(String username) throws SQLException {
         String query = "DELETE FROM users WHERE username = ?";
         try (Connection conn = getConnection();

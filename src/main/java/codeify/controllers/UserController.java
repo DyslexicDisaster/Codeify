@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.ui.Model;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import codeify.persistance.UserDao;
@@ -103,5 +104,21 @@ public class UserController {
             model.addAttribute("errMsg", "An error occurred during login");
             return "error";
         }
+    }
+
+    /**
+     * Logs out the currently logged-in user.
+     *
+     * @param session the HttpSession to invalidate the user's session.
+     * @return redirects to the home page after logout.
+     */
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        User user = (User) session.getAttribute("loggedInUser");
+        if (user != null) {
+            log.info("User {} logged out", user.getUsername());
+        }
+        session.invalidate();
+        return "redirect:/";
     }
 }

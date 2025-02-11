@@ -23,6 +23,9 @@ public class IndexController {
     @GetMapping("/login")
     public String login() { return "login"; }
 
+    @GetMapping("/codeEditor")
+    public String code() { return "codeEditor"; }
+
     /**
      * Handles requests to the home page.
      *

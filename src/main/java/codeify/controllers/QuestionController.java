@@ -1,57 +1,39 @@
 package codeify.controllers;
 
-import codeify.business.Question;
-import codeify.business.ProgrammingLanguage;
-import codeify.persistance.QuestionDao;
-import codeify.persistance.QuestionDaoImpl;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import codeify.model.Question;
+import codeify.persistance.QuestionRepositoryImpl;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.sql.SQLException;
 import java.util.List;
 
-@Slf4j
-@Controller
+@RestController
+@RequestMapping("api/question/")
 public class QuestionController {
-    private final QuestionDao questionDao;
 
-    public QuestionController() {
-        this.questionDao = new QuestionDaoImpl("database.properties");
-    }
+    @Autowired
+    private QuestionRepositoryImpl questionRepositoryImpl;
 
     /**
      * Shows all questions for the selected language or the first available language.
      */
     @GetMapping("/questions")
-    public String showQuestions(
-            @RequestParam(name = "languageId", required = false) Integer languageId,
-            Model model) {
-        try {
-            List<ProgrammingLanguage> languages = questionDao.getAllProgrammingLanguages();
-            model.addAttribute("languages", languages);
-
-            // If languageId is provided, use it otherwise use the first language tjats available
-            int selectedLanguageId = languageId != null ? languageId :
-                    (!languages.isEmpty() ? languages.get(0).getId() : 0);
-
-            if (selectedLanguageId > 0) {
-                List<Question> questions = questionDao.getQuestionsByLanguage(selectedLanguageId);
-                model.addAttribute("questions", questions);
-                model.addAttribute("selectedLanguage",
-                        languages.stream()
-                                .filter(l -> l.getId() == selectedLanguageId)
-                                .findFirst()
-                                .orElse(null));
+    public ResponseEntity<?> showQuestions(@RequestParam(value = "languageId") Integer lanaguageId){
+        try{
+            List<Question> questions;
+            if (lanaguageId == null){
+                return ResponseEntity.badRequest().body("Id of language cannot be null");
+            } else {
+                questions = questionRepositoryImpl.getQuestionByLanguage(lanaguageId);
             }
-
-            return "questions";
+            return ResponseEntity.ok(questions);
         } catch (SQLException e) {
-            log.error("Error loading questions: {}", e.getMessage());
-            model.addAttribute("errMsg", "Error loading questions");
-            return "error";
+            return ResponseEntity.status(500).body("Error retrieving questions: " + e.getMessage());
         }
     }
 }

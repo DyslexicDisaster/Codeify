@@ -1,124 +1,119 @@
 package codeify.controllers;
 
-import codeify.business.User;
-import codeify.persistance.UserDaoImpl;
+import codeify.config.passwordHash;
+import codeify.model.User;
+import codeify.persistance.UserRepositoryImpl;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.ui.Model;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import codeify.persistance.UserDao;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 
-@Slf4j
-@Controller
+@RestController
+@RequestMapping("/api/user/")
 public class UserController {
 
-    /**
-     * Handles user registration.
-     *
-     * @param username   the username entered by the user.
-     * @param password   the password entered by the user.
-     * @param email      the email address entered by the user.
-     * @param model      the Model object used to pass data to the view.
-     * @return the name of the success or error view based on the operation result.
-     */
+    @Autowired
+    private UserRepositoryImpl userRepositoryImpl;
+
     @PostMapping("/register")
-    public String registerUser(
-            @RequestParam(name="username") String username,
-            @RequestParam(name="password") String password,
-            @RequestParam(name="email") String email,
-            Model model, RedirectAttributes redirectAttributes) {
+    public ResponseEntity<?> registerUser(@RequestParam(name="username") String username,
+                                          @RequestParam(name="password") String password,
+                                          @RequestParam(name="email") String email){
 
-        if (username.isBlank() || password.isBlank() || email.isBlank()) {
-            model.addAttribute("errMsg", "All fields must be filled out");
-            return "error";
+        // Checks if all fields are filled
+        if (username.isBlank() || password.isBlank() || email.isBlank()){
+            return ResponseEntity.badRequest().body("All fields must be filled out");
         }
 
-        UserDao userDao = new UserDaoImpl("database.properties");
-        LocalDate registrationDate = LocalDate.now();
-        User user = new User(username, password, "", email, registrationDate);
+        try{
+            // If the username is already inside the database
+            if (userRepositoryImpl.existsByUsername(username)){
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Username is already taken!");
+            }
 
-        try {
-            boolean added = userDao.register(user);
-            if (added) {
-                model.addAttribute("registeredUser", user);
-                log.info("User {} registered successfully", username);
+            // If the email is already inside the database
+            if (userRepositoryImpl.existsByEmail(email)){
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Email is already taken!");
+            }
+
+            // Hashes the password
+            String salt = passwordHash.generateSalt();
+            String hashedPassword = passwordHash.hashPassword(password, salt);
+
+            // Creates user object
+            LocalDate registerDate = LocalDate.now();
+            User newUser = new User(username, hashedPassword, salt, email, registerDate);
+
+            // Register new user inside the database
+            boolean added = userRepositoryImpl.register(newUser);
+            if (added){
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "User registered successfully");
+                response.put("username", username);
+                return ResponseEntity.status(HttpStatus.CREATED).body(response);
             } else {
-                String message = "Registration failed for username: " + username;
-                model.addAttribute("message", message);
-                log.warn("Registration failed for username {}", username);
+                // Error message when user has not been added
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Registration has failed.");
             }
+            // Error has occurred inside the database server
         } catch (SQLException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-            log.error("Error during registration for username {}: {}", username, e.getMessage());
-            model.addAttribute("errMsg", "An error occurred during registration");
-            return "error";
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error has occured during registration - " + e);
         }
-        return "redirect:/login";
     }
 
-    /**
-     * Handles user login.
-     *
-     * @param username the username entered by the user.
-     * @param password the password entered by the user.
-     * @param model    the Model object used to pass data to the view.
-     * @param session  the HttpSession to store the logged-in user's information.
-     * @return the home page on successful login or an error view if login fails.
-     */
     @PostMapping("/login")
-    public String loginUser(
+    public ResponseEntity<?> loginUser(
             @RequestParam(name="username") String username,
             @RequestParam(name="password") String password,
-            Model model, HttpSession session) {
+            HttpSession session) {
 
+        // Checks if all fields are filled
         if (username.isBlank() || password.isBlank()) {
-            model.addAttribute("errMsg", "All fields must be filled out");
-            return "error";
+            return ResponseEntity.badRequest().body("All fields must be filled out");
         }
 
-        UserDao userDao = new UserDaoImpl("database.properties");
-
         try {
-            User user = userDao.login(username, password);
+            User user = userRepositoryImpl.login(username, password);
+            // Error will occur when details are filled wrongly
             if (user == null) {
-                String message = "Invalid username/password combination";
-                model.addAttribute("message", message);
-                log.warn("Failed login attempt for username {}", username);
-                return "loginFailed";
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username/password combination");
             }
 
+            // Creates a session for user
             session.setAttribute("loggedInUser", user);
-            log.info("User '{}' logged in successfully", username);
-            return "redirect:/";
 
-        } catch (SQLException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-            log.error("Error during login for username {}: {}", username, e.getMessage());
-            model.addAttribute("errMsg", "An error occurred during login");
-            return "error";
+            // Returns a successful login message
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Login successful");
+            response.put("username", username);
+            return ResponseEntity.ok(response);
+
+        } catch (SQLException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during login - " + e);
         }
     }
 
-    /**
-     * Logs out the currently logged-in user.
-     *
-     * @param session the HttpSession to invalidate the user's session.
-     * @return redirects to the home page after logout.
-     */
     @GetMapping("/logout")
-    public String logout(HttpSession session) {
+    public ResponseEntity<?> logout(HttpSession session) {
         User user = (User) session.getAttribute("loggedInUser");
+        Map<String, String> response = new HashMap<>();
+
         if (user != null) {
-            log.info("User {} logged out", user.getUsername());
+            response.put("message", "Logout successful for user: " + user.getUsername());
+        } else {
+            response.put("message", "No user is currently logged in");
         }
+
         session.invalidate();
-        return "redirect:/";
+        return ResponseEntity.ok(response);
     }
 }

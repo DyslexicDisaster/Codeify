@@ -21,12 +21,22 @@ public class ProgrammingLanguageController {
         try{
             List<ProgrammingLanguage> languages = programmingLanguageRepositoryImpl.getAllProgrammingLanguage();
 
+            if (languages == null) {
+                return ResponseEntity.status(500).body("Retrieval of languages has failed.");
+            }
+
             if (languages.isEmpty()){
                 return ResponseEntity.status(204).body("No programming languages has been found.");
             }
 
+            if (languages.contains(null)) {
+                return ResponseEntity.status(500).body("Retrieval of languages has failed: List contains null values.");
+            }
+
             return ResponseEntity.ok(languages);
         } catch (SQLException e) {
+            return ResponseEntity.status(500).body("Error retrieving languages: " + e.getMessage());
+        } catch (RuntimeException e) {
             return ResponseEntity.status(500).body("Error retrieving languages: " + e.getMessage());
         }
     }

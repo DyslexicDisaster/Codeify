@@ -1,6 +1,6 @@
 package codeify.controllers;
 
-import codeify.config.passwordHash;
+import codeify.util.passwordHash;
 import codeify.model.User;
 import codeify.persistance.UserRepositoryImpl;
 import jakarta.servlet.http.HttpSession;

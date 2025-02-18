@@ -2,7 +2,7 @@ package codeify.persistance;
 
 import codeify.model.User;
 import codeify.model.role;
-import codeify.config.passwordHash;
+import codeify.util.passwordHash;
 import codeify.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;

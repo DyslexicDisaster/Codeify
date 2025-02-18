@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -94,7 +95,7 @@ public class ProgrammingLanguageControllerTest {
 
         // Assertions
         assertEquals(500, response.getStatusCode().value());
-        assertTrue(response.getBody().toString().contains("Error retrieving languages"));
+        assertTrue(Objects.requireNonNull(response.getBody()).toString().contains("Error retrieving languages"));
 
         // Verify that the method was called once
         verify(programmingLanguageRepositoryImpl, times(1)).getAllProgrammingLanguage();
@@ -194,7 +195,7 @@ public class ProgrammingLanguageControllerTest {
 
         // Assertions
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertTrue(response.getBody().toString().contains("Error retrieving languages: Custom error"));
+        assertTrue(Objects.requireNonNull(response.getBody()).toString().contains("Error retrieving languages: Custom error"));
 
         // Verify that the method was called once
         verify(programmingLanguageRepositoryImpl, times(1)).getAllProgrammingLanguage();
@@ -216,9 +217,6 @@ public class ProgrammingLanguageControllerTest {
 
         // Mocks a list of languages
         when(programmingLanguageRepositoryImpl.getAllProgrammingLanguage()).thenReturn(languages);
-
-        // Call the controller method
-        ResponseEntity<?> response = programmingLanguageController.showLanguages();
 
         // Verify that the method was called once
         verify(programmingLanguageRepositoryImpl, times(1)).getAllProgrammingLanguage();

@@ -5,14 +5,14 @@ USE codeify;
 
 -- Users Table
 DROP TABLE IF EXISTS users;
-CREATE TABLE users (
+ALTER TABLE users (
    user_id INT PRIMARY KEY AUTO_INCREMENT,
    username VARCHAR(50) UNIQUE NOT NULL,
+   salt VARCHAR(255) NOT NULL,
    email VARCHAR(100) UNIQUE NOT NULL,
-   password VARCHAR(255) NOT NULL,
    role ENUM('admin', 'user') DEFAULT 'user',
    registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-   salt VARCHAR(255) NOT NULL
+   password VARCHAR(255) NOT NULL
 );
 
 -- Programming Languages Table

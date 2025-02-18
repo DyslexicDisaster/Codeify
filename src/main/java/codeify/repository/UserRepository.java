@@ -1,12 +1,15 @@
-package codeify.persistance;
+package codeify.repository;
 
-import codeify.business.User;
+import org.springframework.stereotype.Repository;
+
+import codeify.model.User;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.SQLException;
 
-public interface UserDao {
+@Repository
+public interface UserRepository {
     boolean register(User user) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException;
     User login(String username, String password) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException;
 }

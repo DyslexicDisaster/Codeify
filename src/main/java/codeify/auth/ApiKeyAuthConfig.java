@@ -11,7 +11,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @Order(1)
 public class ApiKeyAuthConfig {
 
-    private static final String API_KEY_AUTH_HEADER_NAME = "API_KEY";
+    private static final String API_KEY_AUTH_HEADER_NAME = "x-api-key";
 
     @Bean
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {

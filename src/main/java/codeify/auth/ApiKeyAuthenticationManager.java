@@ -11,7 +11,7 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiKeyAuthenticationManager.class);
 
     // Hardcoded API Key
-    private static final String HARDCODED_API_KEY = "my-secret-api-key";
+    private static final String HARDCODED_API_KEY = "Zx9ENYpcTfAruhX9U4lfoqZynG8SsV2KiER11rM487qN0qVjrJZaq59ktTuUfqITteMM8v5dVB5hd7qWAme7EQWFZbK4FIuBgMx6Wuh7PqoxUmsIqOR1eS0KsJU3Vqiw";
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {

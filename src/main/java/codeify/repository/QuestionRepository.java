@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface QuestionRepository {
     List<Question> getQuestionByLanguage(int languageId) throws SQLException;
+    Question getQuestionById(int questionId) throws SQLException;
 }

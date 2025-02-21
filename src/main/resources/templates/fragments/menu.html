@@ -23,6 +23,9 @@
                     <li class="nav-item" th:if="${session.loggedInUser}">
                         <a class="nav-link" href="/logout">Logout</a>
                     </li>
+                    <li class="nav-item" th:unless="${session.loggedInUser}">
+                        <a class="nav-link" href="/codeEditor">Code</a>
+                    </li>
                 </ul>
 
                 <ul class="navbar-nav">

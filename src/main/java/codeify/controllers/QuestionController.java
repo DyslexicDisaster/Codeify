@@ -3,6 +3,7 @@ package codeify.controllers;
 import codeify.model.Question;
 import codeify.persistance.QuestionRepositoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,17 +21,25 @@ public class QuestionController {
     private QuestionRepositoryImpl questionRepositoryImpl;
 
     /**
-     * Shows all questions for the selected language or the first available language.
+     * Get all questions by language
+     *
+     * @param languageId ID of the language
+     * @return List of questions
      */
     @GetMapping("/questions")
-    public ResponseEntity<?> showQuestions(@RequestParam(value = "languageId") Integer lanaguageId){
+    public ResponseEntity<?> showQuestions(@RequestParam(value = "languageId") Integer languageId){
         try{
             List<Question> questions;
-            if (lanaguageId == null){
+            if (languageId == null){
                 return ResponseEntity.badRequest().body("Id of language cannot be null");
             } else {
-                questions = questionRepositoryImpl.getQuestionByLanguage(lanaguageId);
+                questions = questionRepositoryImpl.getQuestionByLanguage(languageId);
             }
+
+            if (questions.isEmpty()){
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error retrieving questions: List is empty");
+            }
+
             return ResponseEntity.ok(questions);
         } catch (SQLException e) {
             return ResponseEntity.status(500).body("Error retrieving questions: " + e.getMessage());

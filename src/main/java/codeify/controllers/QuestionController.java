@@ -31,7 +31,7 @@ public class QuestionController {
         try{
             List<Question> questions;
             if (languageId == null){
-                return ResponseEntity.badRequest().body("Id of language cannot be null");
+                return ResponseEntity.badRequest().body("ID of language cannot be null");
             } else {
                 questions = questionRepositoryImpl.getQuestionByLanguage(languageId);
             }

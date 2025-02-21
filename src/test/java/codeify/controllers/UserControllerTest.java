@@ -49,12 +49,15 @@ class UserControllerTest {
     @Test
     void testRegisterUser_EmptyParameters() {
 
+        // Set the parameters
         String username = "";
         String password = "";
         String email = "";
 
+        // Call the method
         ResponseEntity<?> response = userController.registerUser(username, password, email);
 
+        // Check if the response is correct
         assertEquals(400, response.getStatusCodeValue());
         assertEquals("All fields must be filled out", response.getBody());
     }
@@ -64,7 +67,7 @@ class UserControllerTest {
      */
     @Test
     void testRegisterUser_Success() throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
-        // Needs to implement the logic of successful login
+        // Implement the test case for a successful registration
     }
 
     /**
@@ -107,7 +110,25 @@ class UserControllerTest {
      */
     @Test
     void testRegisterUser_DatabaseError() throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
-        // Needs to implement the logic of database error
+
+        // Set the parameters
+        String username = "test";
+        String password = "testOne123**";
+        String email = "testing@test.com";
+
+        // Mock the database
+        when(userRepositoryImpl.existsByUsername(username)).thenReturn(false);
+        when(userRepositoryImpl.existsByEmail(email)).thenReturn(false);
+
+        // Mock the database error
+        when(userRepositoryImpl.register(any())).thenThrow(new SQLException("Database error"));
+
+        // Call the method
+        ResponseEntity<?> response = userController.registerUser(username, password, email);
+
+        // Check if the response is correct
+        assertEquals(500, response.getStatusCodeValue());
+        assertTrue(response.getBody().toString().contains("An error has occured during registration"));
     }
 
     /**
@@ -115,6 +136,24 @@ class UserControllerTest {
      */
     @Test
     void testRegisterUser_PasswordHashingError() throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
-        // Needs to implement the logic of password hashing error
+
+        // Set the parameters
+        String username = "test";
+        String password = "testOne123**";
+        String email = "testing@test.com";
+
+        // Mock the database
+        when(userRepositoryImpl.existsByUsername(username)).thenReturn(false);
+        when(userRepositoryImpl.existsByEmail(email)).thenReturn(false);
+
+        // Mock the password hashing error
+        when(userRepositoryImpl.register(any())).thenThrow(new NoSuchAlgorithmException("Password hashing error"));
+
+        // Call the method
+        ResponseEntity<?> response = userController.registerUser(username, password, email);
+
+        // Check if the response is correct
+        assertEquals(500, response.getStatusCodeValue());
+        assertTrue(response.getBody().toString().contains("An error has occured during registration"));
     }
 }

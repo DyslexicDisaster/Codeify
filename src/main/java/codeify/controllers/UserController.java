@@ -1,6 +1,6 @@
 package codeify.controllers;
 
-import codeify.config.passwordHash;
+import codeify.util.passwordHash;
 import codeify.model.User;
 import codeify.persistance.UserRepositoryImpl;
 import jakarta.servlet.http.HttpSession;
@@ -18,6 +18,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user/")
+@CrossOrigin(origins = "http://localhost:3005")
 public class UserController {
 
     @Autowired
@@ -73,8 +74,7 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(
             @RequestParam(name="username") String username,
-            @RequestParam(name="password") String password,
-            HttpSession session) {
+            @RequestParam(name="password") String password) {
 
         // Checks if all fields are filled
         if (username.isBlank() || password.isBlank()) {
@@ -87,9 +87,6 @@ public class UserController {
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username/password combination");
             }
-
-            // Creates a session for user
-            session.setAttribute("loggedInUser", user);
 
             // Returns a successful login message
             Map<String, String> response = new HashMap<>();

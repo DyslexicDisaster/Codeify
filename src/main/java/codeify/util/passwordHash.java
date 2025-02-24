@@ -1,4 +1,4 @@
-package codeify.config;
+package codeify.util;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;

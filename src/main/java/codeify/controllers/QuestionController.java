@@ -25,7 +25,7 @@ public class QuestionController {
      * @return List of questions
      */
     @GetMapping("/questions")
-    public ResponseEntity<?> showQuestions(@RequestParam(value = "languageId") Integer languageId){
+    public ResponseEntity<?> showQuestions(@RequestParam(value = "languageId", required = false) Integer languageId){
         try{
             List<Question> questions;
             if (languageId == null){

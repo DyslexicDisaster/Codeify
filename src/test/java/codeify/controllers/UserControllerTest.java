@@ -10,7 +10,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import codeify.util.*;
 import org.springframework.http.ResponseEntity;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
@@ -31,7 +30,7 @@ class UserControllerTest {
     private UserRepositoryImpl userRepositoryImpl;
 
     @Mock
-    private passwordHash passwordHash;
+    private HttpSession session;
 
     @BeforeEach
     void setUp() {
@@ -187,7 +186,7 @@ class UserControllerTest {
         String password = "";
 
         // Call the method
-        ResponseEntity<?> response = userController.loginUser(username, password);
+        ResponseEntity<?> response = userController.loginUser(username, password, session);
 
         // Check if the response is correct
         assertEquals(400, response.getStatusCodeValue());
@@ -208,7 +207,7 @@ class UserControllerTest {
         when(userRepositoryImpl.login(username, password)).thenReturn(new User(username, password, "salt", "email", LocalDate.now()));
 
         // Call the method
-        ResponseEntity<?> response = userController.loginUser(username, password);
+        ResponseEntity<?> response = userController.loginUser(username, password, session);
 
         // Check if the response is correct
         Map<String, String> responseBody = (Map<String, String>) response.getBody();
@@ -230,7 +229,7 @@ class UserControllerTest {
         when(userRepositoryImpl.login(username, password)).thenReturn(null);
 
         // Call the method
-        ResponseEntity<?> response = userController.loginUser(username, password);
+        ResponseEntity<?> response = userController.loginUser(username, password, session);
 
         // Check if the response is correct
         assertEquals(401, response.getStatusCodeValue());
@@ -250,7 +249,7 @@ class UserControllerTest {
         when(userRepositoryImpl.login(username, password)).thenThrow(new SQLException("Database error"));
 
         // Call the method
-        ResponseEntity<?> response = userController.loginUser(username, password);
+        ResponseEntity<?> response = userController.loginUser(username, password, session);
 
         // Check if the response is correct
         assertEquals(500, response.getStatusCodeValue());

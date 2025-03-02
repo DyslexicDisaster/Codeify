@@ -74,7 +74,8 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(
             @RequestParam(name="username") String username,
-            @RequestParam(name="password") String password) {
+            @RequestParam(name="password") String password,
+            HttpSession session) {
 
         // Checks if all fields are filled
         if (username.isBlank() || password.isBlank()) {
@@ -87,6 +88,8 @@ public class UserController {
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username/password combination");
             }
+
+            session.setAttribute("loggedInUser", user);
 
             // Returns a successful login message
             Map<String, String> response = new HashMap<>();

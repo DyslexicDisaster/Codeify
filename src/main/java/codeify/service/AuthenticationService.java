@@ -3,6 +3,7 @@ package codeify.service;
 import codeify.dtos.LoginUserDto;
 import codeify.model.User;
 import codeify.dtos.RegisterUserDto;
+import codeify.model.role;
 import codeify.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -10,9 +11,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.sql.SQLException;
+import java.time.LocalDate;
 
 @Service
 public class AuthenticationService {
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
@@ -20,31 +23,32 @@ public class AuthenticationService {
     // Constructor injection
     public AuthenticationService(
             UserRepository userRepository,
-            AuthenticationManager authenticationManager,
-            PasswordEncoder passwordEncoder
-    ) {
-        this.authenticationManager = authenticationManager;
+            PasswordEncoder passwordEncoder,
+            AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
     }
 
     // Register a new user with the provided details
-    public User register(RegisterUserDto input) throws SQLException {
+    public User register(RegisterUserDto dto) throws SQLException {
         User user = new User();
-        user.setUsername(input.getUsername());
-        user.setEmail(input.getEmail());
-        user.setPassword(passwordEncoder.encode(input.getPassword()));
+        user.setUsername(dto.getUsername());
+        user.setEmail(dto.getEmail());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setRegistrationDate(LocalDate.now());
+        user.setRole(role.user);
 
         return userRepository.save(user);
     }
 
     // Authenticate a user with the provided details
-    public User authenticate(LoginUserDto input) throws SQLException {
+    public User authenticate(LoginUserDto dto) throws SQLException {
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(input.getUsername(), input.getPassword())
+                new UsernamePasswordAuthenticationToken(dto.getUsername(), dto.getPassword())
         );
 
-        return userRepository.findByUsername(input.getUsername())
+        return userRepository.findByUsername(dto.getUsername())
                 .orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
     }
 }

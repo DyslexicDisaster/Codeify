@@ -4,12 +4,11 @@ import org.springframework.stereotype.Repository;
 
 import codeify.model.User;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.sql.SQLException;
+import java.util.Optional;
 
 @Repository
 public interface UserRepository {
-    boolean register(User user) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException;
-    User login(String username, String password) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException;
+    Optional<User> findByUsername(String username) throws SQLException;
+    User save(User user) throws SQLException;
 }

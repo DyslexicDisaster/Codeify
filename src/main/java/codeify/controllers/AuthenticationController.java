@@ -6,15 +6,15 @@ import codeify.dtos.LoginUserDto;
 import codeify.dtos.RegisterUserDto;
 import codeify.model.User;
 import codeify.service.AuthenticationService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.bind.annotation.*;
 
-import java.sql.SQLException;
 import java.util.Map;
 
 @RestController
+@RequestMapping("/api/auth/")
 public class AuthenticationController {
 
     private final JwtUtil jwtUtil;
@@ -25,21 +25,27 @@ public class AuthenticationController {
         this.authenticationService = authenticationService;
     }
 
-    // Register a new user
-    @PostMapping("/auth/signup")
-    public ResponseEntity<User> register(@RequestBody RegisterUserDto registerUserDto) throws SQLException {
-        User registeredUser = authenticationService.register(registerUserDto);
-        return ResponseEntity.ok(registeredUser);
+    @PostMapping("/signup")
+    public ResponseEntity<User> register(@RequestBody RegisterUserDto registerUserDto) {
+        try {
+            User registeredUser = authenticationService.register(registerUserDto);
+            return ResponseEntity.ok(registeredUser);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
-    // Authenticate a user
-    @PostMapping("/auth/login")
-    public ResponseEntity<LoginResponse> authenticate(@RequestBody LoginUserDto loginUserDto) throws SQLException {
-        User authenticatedUser = authenticationService.authenticate(loginUserDto);
-        String jwtToken = jwtUtil.generateToken(Map.of(), authenticatedUser);
-
-        LoginResponse response = new LoginResponse(jwtToken, jwtUtil.getExpirationTime());
-
-        return ResponseEntity.ok(response);
+    @PostMapping("/login")
+    public ResponseEntity<?> authenticate(@RequestBody LoginUserDto loginUserDto) {
+        try {
+            User authenticatedUser = authenticationService.authenticate(loginUserDto);
+            String jwtToken = jwtUtil.generateToken(Map.of(), authenticatedUser);
+            LoginResponse response = new LoginResponse(jwtToken, jwtUtil.getExpirationTime());
+            return ResponseEntity.ok(response);
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

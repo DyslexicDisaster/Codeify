@@ -3,7 +3,6 @@ package codeify.auth;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -17,17 +16,14 @@ public class ApiKeyAuthConfig {
     @Bean
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         ApiKeyAuthenticationFilter filter = new ApiKeyAuthenticationFilter(API_KEY_AUTH_HEADER_NAME);
-        filter.setAuthenticationManager(new ApiKeyAuthenticationManager());
+        filter.setAuthenticationManager(new ApiKeyAuthenticationManager()); // No DB needed
 
         http
-                .securityMatcher("/api/**")
+                .securityMatcher("/api/**") // Protects all /api/ endpoints
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .addFilter(filter);
+                .addFilter(filter)
+                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated());
 
         return http.build();
     }

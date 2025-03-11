@@ -278,3 +278,5 @@ VALUES
         false,
         '%'
     );
+INSERT INTO questions (id, title, description, programming_language_id, question_type, difficulty, starter_code, ai_solution_required, correct_answer, created_at)
+VALUES ( 'Sample Question', 'What is the output of 2+2?', 1, 'CODING', 'EASY', '', 1, '4', NOW());

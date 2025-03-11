@@ -6,19 +6,19 @@ USE codeify;
 -- Users Table
 DROP TABLE IF EXISTS users;
 ALTER TABLE users (
-   user_id INT PRIMARY KEY AUTO_INCREMENT,
-   username VARCHAR(50) UNIQUE NOT NULL,
-   salt VARCHAR(255) NOT NULL,
-   email VARCHAR(100) UNIQUE NOT NULL,
-   role ENUM('admin', 'user') DEFAULT 'user',
-   registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-   password VARCHAR(255) NOT NULL
+                            user_id INT PRIMARY KEY AUTO_INCREMENT,
+                            username VARCHAR(50) UNIQUE NOT NULL,
+                            salt VARCHAR(255) NOT NULL,
+                            email VARCHAR(100) UNIQUE NOT NULL,
+                            role ENUM('admin', 'user') DEFAULT 'user',
+                            registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                            password VARCHAR(255) NOT NULL
 );
 
 -- Programming Languages Table
 CREATE TABLE programming_languages (
-                                       id INT AUTO_INCREMENT PRIMARY KEY,
-                                       name VARCHAR(50) NOT NULL UNIQUE -- Example: Java, MySQL, JavaScript
+                            id INT AUTO_INCREMENT PRIMARY KEY,
+                            name VARCHAR(50) NOT NULL UNIQUE -- Example: Java, MySQL, JavaScript
 );
 
 -- Questions Table (Supports Both Logic & Coding Questions)
@@ -86,4 +86,11 @@ CREATE TABLE comments (
                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                           FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
                           FOREIGN KEY (blog_post_id) REFERENCES blog_posts(id) ON DELETE CASCADE
+);
+CREATE TABLE friends (
+                         user_id INT NOT NULL,
+                         friend_id INT NOT NULL,
+                         PRIMARY KEY (user_id, friend_id),
+                         FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+                         FOREIGN KEY (friend_id) REFERENCES users(user_id) ON DELETE CASCADE
 );

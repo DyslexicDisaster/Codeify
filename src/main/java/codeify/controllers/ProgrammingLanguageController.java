@@ -16,7 +16,7 @@ import java.util.Objects;
 
 @RestController
 @RequestMapping("api/programming_language/")
-@CrossOrigin(origins = "http://localhost:3005")
+@CrossOrigin(origins = "http://localhost:3000")
 public class ProgrammingLanguageController {
 
     // Injects the repository

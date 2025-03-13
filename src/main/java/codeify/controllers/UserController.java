@@ -10,7 +10,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user/")
-@CrossOrigin(origins = "http://localhost:3005")
+@CrossOrigin(origins = "http://localhost:3000")
 public class UserController {
 
     @GetMapping("/logout")

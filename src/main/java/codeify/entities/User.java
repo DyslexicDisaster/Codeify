@@ -1,4 +1,4 @@
-package codeify.model;
+package codeify.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -35,9 +35,6 @@ public class User implements UserDetails {
     @Column(name = "password")
     private String password;
 
-    @Column(name = "salt")
-    private String salt;
-
     @Column(name = "email", unique = true, length = 100, nullable = false)
     private String email;
 
@@ -45,14 +42,13 @@ public class User implements UserDetails {
     private LocalDate registrationDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role")
+    @Column(name = "role", nullable = false, columnDefinition = "ENUM('admin', 'user') DEFAULT 'user'")
     private role role;
 
-    public User(String username, String password, String salt, String email, LocalDate registrationDate) {
+    public User(String username, String password, String email, LocalDate registrationDate) {
         this.userId = 0;
         this.username = username;
         this.password = password;
-        this.salt = salt;
         this.email = email;
         this.registrationDate = registrationDate;
         this.role = role.user;

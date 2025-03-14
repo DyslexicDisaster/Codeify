@@ -1,11 +1,10 @@
-package codeify.model;
+package codeify.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 
 @Getter
 @Setter

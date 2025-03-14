@@ -1,4 +1,4 @@
-package codeify.model;
+package codeify.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,8 +11,8 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "comments")
-public class Comment {
+@Table(name = "programming_languages")
+public class ProgrammingLanguage {
 
     @EqualsAndHashCode.Include
     @NonNull
@@ -21,14 +21,6 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @ManyToOne
-    @JoinColumn(name = "blog_post_id")
-    private BlogPost blogPost;
-
-    @Column(name = "comment_text")
-    private String commentText;
+    @Column(name = "name")
+    private String name;
 }

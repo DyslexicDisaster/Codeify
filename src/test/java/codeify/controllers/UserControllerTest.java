@@ -1,7 +1,7 @@
 package codeify.controllers;
 
 import codeify.persistance.UserRepositoryImpl;
-import codeify.model.*;
+import codeify.entities.*;
 import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

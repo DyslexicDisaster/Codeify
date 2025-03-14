@@ -1,11 +1,10 @@
 package codeify.persistance;
 
-import codeify.model.ProgrammingLanguage;
-import codeify.model.Question;
+import codeify.entities.ProgrammingLanguage;
+import codeify.entities.Question;
 import codeify.repository.QuestionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
 import javax.sql.DataSource;
 import java.sql.Connection;

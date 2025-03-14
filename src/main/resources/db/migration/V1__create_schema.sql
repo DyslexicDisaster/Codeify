@@ -8,7 +8,7 @@ CREATE TABLE users (
    user_id INT PRIMARY KEY AUTO_INCREMENT,
    username VARCHAR(50) UNIQUE NOT NULL,
    email VARCHAR(100) UNIQUE NOT NULL,
-   role ENUM('admin', 'user') DEFAULT 'user',
+   role ENUM('admin', 'user') DEFAULT 'user' NOT NULL,
    registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
    password VARCHAR(255) NOT NULL
 );

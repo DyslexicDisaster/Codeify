@@ -1,10 +1,11 @@
 package codeify.controllers;
 
-import codeify.model.Question;
+import codeify.entities.Question;
 import codeify.persistance.QuestionRepositoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
@@ -24,6 +25,7 @@ public class QuestionController {
      * @param languageId ID of the language
      * @return List of questions
      */
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/questions")
     public ResponseEntity<?> showQuestions(@RequestParam(value = "languageId", required = false) Integer languageId){
         try{
@@ -44,6 +46,7 @@ public class QuestionController {
         }
     }
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/question/{id}")
     public ResponseEntity<?> getQuestionById(@PathVariable("id") Integer questionId) {
         try {

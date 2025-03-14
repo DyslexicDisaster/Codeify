@@ -1,7 +1,7 @@
 package codeify.controllers;
 
-import codeify.model.ProgrammingLanguage;
-import codeify.model.Question;
+import codeify.entities.ProgrammingLanguage;
+import codeify.entities.Question;
 import codeify.persistance.QuestionRepositoryImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

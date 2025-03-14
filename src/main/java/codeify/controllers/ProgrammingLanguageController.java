@@ -1,18 +1,17 @@
 package codeify.controllers;
 
-import codeify.model.ProgrammingLanguage;
+import codeify.entities.ProgrammingLanguage;
 import codeify.persistance.ProgrammingLanguageRepositoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("api/programming_language/")
@@ -23,6 +22,7 @@ public class ProgrammingLanguageController {
     @Autowired
     private ProgrammingLanguageRepositoryImpl programmingLanguageRepositoryImpl;
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/programming_languages")
     public ResponseEntity<?> showLanguages(){
         try{

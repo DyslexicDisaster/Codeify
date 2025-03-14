@@ -1,9 +1,8 @@
-package codeify.model;
+package codeify.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 
 import java.time.LocalDateTime;
 
@@ -15,12 +14,12 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "leaderboard")
-public class Leaderboard {
+@Table(name = "user_progress")
+public class UserProgress {
 
-    @Id
     @EqualsAndHashCode.Include
     @NonNull
+    @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -30,16 +29,21 @@ public class Leaderboard {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "language_id")
-    private ProgrammingLanguage language;
+    @JoinColumn(name = "question_id")
+    private Question question;
 
-    @Column(name = "total_score")
-    private int totalScore = 0;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private ProgressStatus status;
 
-    @Column(name = "rank")
-    private int rank;
+    @Column(name = "score")
+    private int score;
 
     @CreationTimestamp
-    @Column(name = "last_updated")
-    private LocalDateTime lastUpdated;
+    @Column(name = "last_attempt")
+    private LocalDateTime lastAttempt;
+
+    public enum ProgressStatus {
+        NOT_STARTED, IN_PROGRESS, COMPLETED
+    }
 }

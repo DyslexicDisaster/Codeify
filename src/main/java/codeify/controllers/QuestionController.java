@@ -1,6 +1,6 @@
 package codeify.controllers;
 
-import codeify.model.Question;
+import codeify.entities.Question;
 import codeify.persistance.QuestionRepositoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

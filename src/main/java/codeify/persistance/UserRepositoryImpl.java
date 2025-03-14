@@ -1,8 +1,7 @@
 package codeify.persistance;
 
-import codeify.model.User;
-import codeify.model.role;
-import codeify.util.passwordHash;
+import codeify.entities.User;
+import codeify.entities.role;
 import codeify.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -41,15 +40,14 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User save(User user) throws SQLException {
-        String query = "INSERT INTO users (username, email, password, salt, registration_date, role) VALUES (?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO users (username, email, password, registration_date, role) VALUES (?, ?, ?, ?, ?)";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
             statement.setString(1, user.getUsername());
             statement.setString(2, user.getEmail());
             statement.setString(3, user.getPassword());
-            statement.setString(4, user.getSalt());
-            statement.setDate(5, Date.valueOf(user.getRegistrationDate()));
-            statement.setString(6, user.getRole().toString());
+            statement.setDate(4, Date.valueOf(user.getRegistrationDate()));
+            statement.setString(5, user.getRole().toString());
 
             int rowsInserted = statement.executeUpdate();
             if (rowsInserted > 0) {

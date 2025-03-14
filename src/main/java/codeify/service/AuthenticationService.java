@@ -1,9 +1,9 @@
 package codeify.service;
 
 import codeify.dtos.LoginUserDto;
-import codeify.model.User;
+import codeify.entities.User;
 import codeify.dtos.RegisterUserDto;
-import codeify.model.role;
+import codeify.entities.role;
 import codeify.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;

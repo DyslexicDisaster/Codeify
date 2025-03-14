@@ -1,10 +1,7 @@
-package codeify.model;
+package codeify.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -14,12 +11,12 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "blog_posts")
-public class BlogPost {
+@Table(name = "comments")
+public class Comment {
 
-    @Id
-    @NonNull
     @EqualsAndHashCode.Include
+    @NonNull
+    @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -28,13 +25,10 @@ public class BlogPost {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(name = "title")
-    private String title;
+    @ManyToOne
+    @JoinColumn(name = "blog_post_id")
+    private BlogPost blogPost;
 
-    @Column(name = "context")
-    private String context;
-
-    @CreationTimestamp
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @Column(name = "comment_text")
+    private String commentText;
 }

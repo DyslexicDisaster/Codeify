@@ -2,7 +2,7 @@ package codeify.repository;
 
 import org.springframework.stereotype.Repository;
 
-import codeify.model.User;
+import codeify.entities.User;
 
 import java.sql.SQLException;
 import java.util.Optional;

@@ -1,6 +1,6 @@
 package codeify.controllers;
 
-import codeify.model.User;
+import codeify.entities.User;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

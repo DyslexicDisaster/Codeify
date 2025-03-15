@@ -12,6 +12,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Repository
 public class UserRepositoryImpl implements UserRepository {
@@ -19,6 +21,19 @@ public class UserRepositoryImpl implements UserRepository {
     @Autowired
     private DataSource dataSource;
 
+    // Constructor
+    public UserRepositoryImpl(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    /**
+     * Checks if a user with the given username exists in the database.
+     *
+     * @param username the username to check.
+     * @return true if the user exists, false otherwise.
+     * @throws SQLException if a database access error occurs.
+     */
+    @Override
     public boolean existsByUsername(String username) throws SQLException {
         String query = "SELECT COUNT(*) FROM users WHERE username = ?";
         try (Connection connection = dataSource.getConnection();
@@ -32,6 +47,14 @@ public class UserRepositoryImpl implements UserRepository {
         return false;
     }
 
+    /**
+     * Checks if a user with the given email exists in the database.
+     *
+     * @param email the email to check.
+     * @return true if the user exists, false otherwise.
+     * @throws SQLException if a database access error occurs.
+     */
+    @Override
     public boolean existsByEmail(String email) throws SQLException {
         String query = "SELECT COUNT(*) FROM users WHERE email = ?";
         try (Connection connection = dataSource.getConnection();
@@ -45,22 +68,53 @@ public class UserRepositoryImpl implements UserRepository {
         return false;
     }
 
+    /**
+     * Changes the role of a user with the given id.
+     *
+     * @param id the id of the user to change the role.
+     * @param role the new role to assign to the user.
+     * @return true if the role is successfully changed, false otherwise.
+     * @throws SQLException if a database access error occurs.
+     */
+    @Override
+    public boolean changeRole(int id, role role) throws SQLException {
+        String query = "UPDATE Users SET role = ? WHERE user_id = ?";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, String.valueOf(role));
+            statement.setInt(2, id);
+
+            int rowsUpdated = statement.executeUpdate();
+            return rowsUpdated > 0;
+        }
+    }
+
+    /**
+     * Registers a new user in the database.
+     *
+     * @param user the User object to register.
+     * @return true if the user is successfully registered, false otherwise.
+     * @throws SQLException if a database access error occurs.
+     * @throws NoSuchAlgorithmException if the algorithm used to hash the password is not found.
+     * @throws InvalidKeySpecException if the key specification used to hash the password is invalid.
+     */
     @Override
     public boolean register(User user) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
+        String hashedPassword = passwordHash.hashPassword(user.getPassword(), user.getSalt());
         String query = "INSERT INTO Users (username, email, password, salt, registration_date, role) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, user.getUsername());
             statement.setString(2, user.getEmail());
-            statement.setString(3, user.getPassword());
+            statement.setString(3, hashedPassword);
             statement.setString(4, user.getSalt());
             statement.setDate(5, Date.valueOf(user.getRegistrationDate()));
             statement.setString(6, user.getRole().toString());
-
             int rowsInserted = statement.executeUpdate();
             return rowsInserted > 0;
         }
     }
+
 
     /**
      * Logs in a user with the given username and password.
@@ -111,19 +165,66 @@ public class UserRepositoryImpl implements UserRepository {
         return null;
     }
 
-    /**
-     * Updates the user's information in the database.
-     *
-     * @param username name of the User objects to update.
-     * @return true if the user is successfully updated, false otherwise.
-     * @throws SQLException if a database access error occurs.
-     */
-    public boolean deleteUserByUsername(String username) throws SQLException {
-        String query = "DELETE FROM users WHERE username = ?";
-        try (Connection conn = dataSource.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setString(1, username);
-            return stmt.executeUpdate() > 0;
+    @Override
+    public boolean deleteUserById(int id) throws SQLException {
+        String query = "DELETE FROM Users WHERE user_id = ?";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setInt(1, id);
+            int rowsDeleted = statement.executeUpdate();
+            return rowsDeleted > 0;
+        }
+    }
+
+    @Override
+    public List<User> getAllUsers() throws SQLException {
+        String query = "SELECT * FROM Users";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            ResultSet resultSet = statement.executeQuery();
+            List<User> users = new ArrayList<>();
+            while (resultSet.next()) {
+                users.add(new User(
+                        resultSet.getInt("user_id"),
+                        resultSet.getString("username"),
+                        resultSet.getString("password"),
+                        resultSet.getString("salt"),
+                        resultSet.getString("email"),
+                        resultSet.getDate("registration_date").toLocalDate(),
+                        role.valueOf(resultSet.getString("role"))
+                ));
+            }
+            return users;
+        }
+    }
+
+    @Override
+    public boolean updateUser(User user) throws SQLException {
+        String query = "UPDATE Users SET username = ?, email = ?, password = ?, salt = ?, role = ? WHERE user_id = ?";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, user.getUsername());
+            statement.setString(2, user.getEmail());
+            statement.setString(3, user.getPassword());
+            statement.setString(4, user.getSalt());
+            statement.setString(5, user.getRole().toString());
+            statement.setInt(6, user.getUserId());
+
+            int rowsUpdated = statement.executeUpdate();
+            return rowsUpdated > 0;
+        }
+    }
+
+    @Override
+    public boolean resetPassword(int id, String password) throws SQLException {
+        String query = "UPDATE Users SET password = ? WHERE user_id = ?";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, password);
+            statement.setInt(2, id);
+
+            int rowsUpdated = statement.executeUpdate();
+            return rowsUpdated > 0;
         }
     }
 }

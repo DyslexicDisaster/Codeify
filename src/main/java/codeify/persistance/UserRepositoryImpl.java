@@ -107,12 +107,15 @@ public class UserRepositoryImpl implements UserRepository {
         String query = "INSERT INTO Users (username, email, password, salt, registration_date, role) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
+            String salt = passwordHash.generateSalt();
+            String hashedPassword = passwordHash.hashPassword(user.getPassword(), salt);
             statement.setString(1, user.getUsername());
             statement.setString(2, user.getEmail());
-            statement.setString(3, user.getPassword());
-            statement.setString(4, user.getSalt());
-            statement.setDate(5, Date.valueOf(user.getRegistrationDate()));
+            statement.setString(3, hashedPassword);
+            statement.setString(4, salt);
+            statement.setDate(5, Date.valueOf(LocalDate.now()));
             statement.setString(6, user.getRole().toString());
+
             int rowsInserted = statement.executeUpdate();
             return rowsInserted > 0;
         }
@@ -168,6 +171,13 @@ public class UserRepositoryImpl implements UserRepository {
         return null;
     }
 
+    /**
+     * Deletes a user with the given user_id.
+     *
+     * @param id the user_id of the user to delete.
+     * @return true if the user is successfully deleted, false otherwise.
+     * @throws SQLException if a database access error occurs.
+     */
     @Override
     public boolean deleteUserById(int id) throws SQLException {
         String query = "DELETE FROM Users WHERE user_id = ?";
@@ -179,6 +189,12 @@ public class UserRepositoryImpl implements UserRepository {
         }
     }
 
+    /**
+     * Get all users from the database.
+     *
+     * @return a list of all users in the database.
+     * @throws SQLException if a database access error occurs.
+     */
     @Override
     public List<User> getAllUsers() throws SQLException {
         String query = "SELECT * FROM Users";
@@ -201,23 +217,70 @@ public class UserRepositoryImpl implements UserRepository {
         }
     }
 
+    /**
+     * Updates the user with the given user_id.
+     *
+     * @param user the User object to update.
+     * @return
+     * @throws SQLException
+     */
     @Override
     public boolean updateUser(User user) throws SQLException {
-        String query = "UPDATE Users SET username = ?, email = ?, password = ?, salt = ?, role = ? WHERE user_id = ?";
+        String query = "UPDATE Users SET username = ?, email = ?, password = ?, role = ? WHERE user_id = ?";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, user.getUsername());
             statement.setString(2, user.getEmail());
             statement.setString(3, user.getPassword());
-            statement.setString(4, user.getSalt());
-            statement.setString(5, user.getRole().toString());
-            statement.setInt(6, user.getUserId());
+            statement.setString(4, user.getRole().toString());
+            statement.setInt(5, user.getUserId());
 
             int rowsUpdated = statement.executeUpdate();
             return rowsUpdated > 0;
         }
     }
 
+    /**
+     * Get a user by user_id.
+     *
+     * @param userId the user_id of the user to get.
+     * @return a User object if the user exists, null otherwise.
+     * @throws SQLException if a database access error occurs.
+     */
+    @Override
+    public User getUserById(int userId) throws SQLException {
+        String query = "SELECT * FROM users WHERE user_id = ?";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.setInt(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    System.out.println("User found: " + rs.getString("username"));
+                    return new User(
+                            rs.getInt("user_id"),
+                            rs.getString("username"),
+                            rs.getString("password"),
+                            rs.getString("salt"),
+                            rs.getString("email"),
+                            rs.getDate("registration_date").toLocalDate(),
+                            codeify.entities.role.valueOf(rs.getString("role"))
+                    );
+                } else {
+                    System.out.println("No user found for user_id=" + userId);
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Reset the password of a user with the given user_id.
+     *
+     * @param id the user_id of the user to reset the password.
+     * @param password the new password to set.
+     * @return true if the password is successfully reset, false otherwise.
+     * @throws SQLException if a database access error occurs.
+     */
     @Override
     public boolean resetPassword(int id, String password) throws SQLException {
         String query = "UPDATE Users SET password = ? WHERE user_id = ?";

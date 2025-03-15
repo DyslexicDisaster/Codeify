@@ -6,7 +6,9 @@ import codeify.entities.User;
 import codeify.persistance.ProgrammingLanguageRepositoryImpl;
 import codeify.persistance.QuestionRepositoryImpl;
 import codeify.persistance.UserRepositoryImpl;
+import codeify.util.passwordHash;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -68,16 +70,36 @@ public class AdminController {
 
     // Update user
     @PutMapping("/update_user")
-    public ResponseEntity<String> updateUser(@RequestBody User user) {
-        try{
-            boolean updated = userRepositoryImpl.updateUser(user);
-            if(updated){
+    public ResponseEntity<String> updateUser(@RequestBody User updatedUser) {
+        try {
+            User existingUser = userRepositoryImpl.getUserById(updatedUser.getUserId());
+            if (existingUser == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+
+            existingUser.setUsername(updatedUser.getUsername());
+            existingUser.setEmail(updatedUser.getEmail());
+
+            String saltToUse = (updatedUser.getSalt() != null && !updatedUser.getSalt().isBlank())
+                    ? updatedUser.getSalt()
+                    : existingUser.getSalt();
+
+            if (updatedUser.getPassword() != null && !updatedUser.getPassword().isBlank()) {
+                existingUser.setPassword(passwordHash.hashPassword(updatedUser.getPassword(), saltToUse));
+                existingUser.setSalt(saltToUse);
+            }
+
+            existingUser.setRole(updatedUser.getRole());
+
+            boolean updated = userRepositoryImpl.updateUser(existingUser);
+            if (updated) {
                 return ResponseEntity.ok("User updated successfully");
             } else {
                 return ResponseEntity.badRequest().body("User not updated");
             }
-        } catch (Exception e){
-            return ResponseEntity.status(500).body("Internal server error: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Internal server error: " + e.getMessage());
         }
     }
 

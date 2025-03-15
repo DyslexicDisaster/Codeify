@@ -12,6 +12,11 @@ import java.util.Map;
 @Service
 public class AiEvaluationService {
 
+    //References for everything to do with deepseek api and api in general
+    //https://javatechonline.com/deepseek-spring-ai-integration-with-spring-boot/
+    //https://www.baeldung.com/rest-template
+
+    //API Documentation: https://api-docs.deepseek.com/guides/reasoning_model
     // RestTemplate is used to make HTTP requests.
     private RestTemplate restTemplate = new RestTemplate();
 
@@ -52,7 +57,7 @@ public class AiEvaluationService {
         requestPayload.put("messages", List.of(message));
 
         // Set max_tokens to allow enough room for feedback.
-        requestPayload.put("max_tokens", 50);
+        requestPayload.put("max_tokens", 100);
 
         // Set up HTTP headers for the request.
         HttpHeaders headers = new HttpHeaders();

@@ -123,7 +123,8 @@ public class AdminController {
     @PutMapping("/reset_password/{id}")
     public ResponseEntity<String> resetPassword(@PathVariable int id, @RequestParam String password) {
         try{
-            boolean updated = userRepositoryImpl.resetPassword(id, password);
+            User user = userRepositoryImpl.getUserById(id);
+            boolean updated = userRepositoryImpl.resetPassword(id, passwordHash.hashPassword(password,user.getSalt()));
             if(updated){
                 return ResponseEntity.ok("Password reset successfully");
             } else {

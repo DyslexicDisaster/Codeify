@@ -26,6 +26,15 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class UserRepositoryTest {
 
+    // Refetence for this class: https://www.baeldung.com/mockito-annotations
+    // Reference for MockitoSettings: https://www.baeldung.com/mockito-strictness
+    // Reference for MockitoExtension: https://www.baeldung.com/mockito-annotations
+    // Reference for MockedStatic: https://www.baeldung.com/mockito-mock-static-methods
+    // Reference for Mockito.mock: https://www.baeldung.com/mockito-mock
+    // Reference for Mockito.when: https://www.baeldung.com/mockito-when-thenReturn
+    // Reference for Mockito.verify: https://www.baeldung.com/mockito-verify
+    // Reference for testing: https://www.youtube.com/watch?v=7QCzBwplNIk
+
     @InjectMocks
     private UserRepositoryImpl userRepositoryImpl;
 

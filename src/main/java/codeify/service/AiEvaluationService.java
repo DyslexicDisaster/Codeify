@@ -1,6 +1,6 @@
 package codeify.service;
 
-import codeify.model.Question;
+import codeify.entities.Question;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -42,7 +42,7 @@ public class AiEvaluationService {
 
         // Prepare the request payload as a JSON object.
         Map<String, Object> requestPayload = new HashMap<>();
-        requestPayload.put("model", "deepseek-reasoner");
+        requestPayload.put("model", "deepseek-reasoner"); // Specify the AI model.
 
         // Create a message object that holds the prompt.
         Map<String, String> message = new HashMap<>();
@@ -98,17 +98,18 @@ public class AiEvaluationService {
         return result;
     }
 
-    // Main method for testing the service in your IDE.
+    // Main method for testing the AI evaluation service independently.
     public static void main(String[] args) {
         AiEvaluationService service = new AiEvaluationService();
 
-        // Create a sample question.
+        // Create a sample question object.
         Question sampleQuestion = new Question();
         sampleQuestion.setTitle("Sample Question");
         sampleQuestion.setDescription("What is the output of 2+2?");
 
         String userAnswer = "4";
 
+        // Evaluate the answer.
         Map<String, String> evaluationResult = service.evaluateAnswer(sampleQuestion, userAnswer);
         System.out.println("Grade: " + evaluationResult.get("grade"));
         System.out.println("Feedback: " + evaluationResult.get("feedback"));

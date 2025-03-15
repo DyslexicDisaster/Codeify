@@ -74,7 +74,8 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(
             @RequestParam(name="username") String username,
-            @RequestParam(name="password") String password) {
+            @RequestParam(name="password") String password,
+            HttpSession session) { // Add HttpSession here
 
         // Checks if all fields are filled
         if (username.isBlank() || password.isBlank()) {
@@ -83,10 +84,13 @@ public class UserController {
 
         try {
             User user = userRepositoryImpl.login(username, password);
-            // Error will occur when details are filled wrongly
             if (user == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username/password combination");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Invalid username/password combination");
             }
+
+            // Store the logged in user in the session!
+            session.setAttribute("loggedInUser", user);
 
             // Returns a successful login message
             Map<String, String> response = new HashMap<>();
@@ -95,7 +99,8 @@ public class UserController {
             return ResponseEntity.ok(response);
 
         } catch (SQLException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred during login - " + e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred during login - " + e);
         }
     }
 

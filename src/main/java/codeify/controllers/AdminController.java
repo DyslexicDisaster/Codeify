@@ -30,9 +30,10 @@ public class AdminController {
 
     // Get all users
     @GetMapping("/get_all_users")
-    public ResponseEntity<String> getAllUsers() {
+    public ResponseEntity<?> getAllUsers() {
         try{
-            return ResponseEntity.ok(userRepositoryImpl.getAllUsers().toString());
+            List<User> users = userRepositoryImpl.getAllUsers();
+            return ResponseEntity.ok(users);
         } catch (Exception e){
             return ResponseEntity.status(500).body("Internal server error: " + e.getMessage());
         }
@@ -135,10 +136,10 @@ public class AdminController {
 
     // Get all questions
     @GetMapping("/get_all_questions")
-    public ResponseEntity<String> getAllQuestions() {
+    public ResponseEntity<?> getAllQuestions() {
         try {
             List<Question> questions = questionRepositoryImpl.getQuestions();
-            return ResponseEntity.ok(questions.toString());
+            return ResponseEntity.ok(questions);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Internal server error: " + e.getMessage());
         }

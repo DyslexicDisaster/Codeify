@@ -12,6 +12,11 @@ import java.util.Map;
 @Service
 public class AiEvaluationService {
 
+    //References for everything to do with deepseek api and api in general
+    //https://javatechonline.com/deepseek-spring-ai-integration-with-spring-boot/
+    //https://www.baeldung.com/rest-template
+
+    //API Documentation: https://api-docs.deepseek.com/guides/reasoning_model
     // RestTemplate is used to make HTTP requests.
     private RestTemplate restTemplate = new RestTemplate();
 

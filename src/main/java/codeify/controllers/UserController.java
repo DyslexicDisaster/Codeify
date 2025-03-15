@@ -1,7 +1,7 @@
 package codeify.controllers;
 
 import codeify.util.passwordHash;
-import codeify.model.User;
+import codeify.entities.User;
 import codeify.persistance.UserRepositoryImpl;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;

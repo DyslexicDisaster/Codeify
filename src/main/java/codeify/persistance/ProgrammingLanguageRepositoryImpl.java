@@ -1,6 +1,6 @@
 package codeify.persistance;
 
-import codeify.model.ProgrammingLanguage;
+import codeify.entities.ProgrammingLanguage;
 import codeify.repository.ProgrammingLanguageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;

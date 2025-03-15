@@ -2,7 +2,7 @@ package codeify.repository;
 
 import org.springframework.stereotype.Repository;
 
-import codeify.model.User;
+import codeify.entities.User;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;

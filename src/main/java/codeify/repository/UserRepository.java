@@ -21,4 +21,5 @@ public interface UserRepository {
     boolean existsByUsername(String username) throws SQLException;
     boolean existsByEmail(String email) throws SQLException;
     boolean changeRole(int id, role role) throws SQLException;
+    User getUserById(int id) throws SQLException;
 }

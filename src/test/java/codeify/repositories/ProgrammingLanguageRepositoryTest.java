@@ -49,7 +49,6 @@ class ProgrammingLanguageRepositoryTest {
     @BeforeEach
     void setUp() throws SQLException {
         when(dataSource.getConnection()).thenReturn(connection);
-        // By default, all preparedStatement calls return our mock statement.
         when(connection.prepareStatement(anyString())).thenReturn(statement);
     }
 

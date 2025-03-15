@@ -1,5 +1,6 @@
 package codeify.controllers;
 
+import codeify.entities.GradeRequest;
 import codeify.entities.Question;
 import codeify.persistance.QuestionRepositoryImpl;
 import codeify.persistance.UserProgressRepositoryImpl;
@@ -75,37 +76,29 @@ public class QuestionController {
             return ResponseEntity.status(500).body("Error retrieving question: " + e.getMessage());
         }
     }
-
-    /**
-     * Grades a user's answer using an AI API and updates the user_progress table.
-     *
-     * @param questionId The ID of the question.
-     * @param answer     The user's answer.
-     * @param session    The HTTP session (used to get the logged-in user).
-     * @return A JSON response containing the grade and feedback.
-     */
     @PostMapping("/grade")
-    public ResponseEntity<?> gradeAnswer(@RequestParam("questionId") Integer questionId,
-                                         @RequestParam("answer") String answer,
-                                         HttpSession session) {
+    public ResponseEntity<?> gradeAnswer(@RequestBody GradeRequest gradeRequest, HttpSession session) {
+        // Retrieve the logged-in user from the session.
         /*Object userObj = session.getAttribute("loggedInUser");
         if (userObj == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not logged in");
         }
-        int userId = ((codeify.model.User) userObj).getUserId();*/
+        int userId = ((codeify.entities.User) userObj).getUserId();*/
 
         try {
-            if (questionId == null) {
+            // Validate input.
+            if (gradeRequest.getQuestionId() == null) {
                 return ResponseEntity.badRequest().body("Question ID cannot be null");
             }
 
-            Question question = questionRepositoryImpl.getQuestionById(questionId);
+            // Retrieve the question from the database.
+            Question question = questionRepositoryImpl.getQuestionById(gradeRequest.getQuestionId());
             if (question == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Question not found");
             }
 
             // Evaluate the answer using the AI service.
-            Map<String, String> evaluationResult = aiEvaluationService.evaluateAnswer(question, answer);
+            Map<String, String> evaluationResult = aiEvaluationService.evaluateAnswer(question, gradeRequest.getAnswer());
             int grade;
             try {
                 grade = Integer.parseInt(evaluationResult.get("grade"));
@@ -113,14 +106,14 @@ public class QuestionController {
                 grade = 0;
             }
 
-            // Update user_progress in the database.
-            /*boolean updated = userProgressRepositoryImpl.updateUserProgress(userId, questionId, grade);
-            if (!updated) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body("Failed to update user progress");
-            }*/
+            // Update the user_progress table (omitting user progress update for simplicity if not needed).
+            // boolean updated = userProgressRepositoryImpl.updateUserProgress(userId, gradeRequest.getQuestionId(), grade);
+            // if (!updated) {
+            //     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            //             .body("Failed to update user progress");
+            // }
 
-            // Prepare the JSON response.
+            // Build the JSON response.
             Map<String, Object> response = new HashMap<>();
             response.put("grade", grade);
             response.put("feedback", evaluationResult.get("feedback"));

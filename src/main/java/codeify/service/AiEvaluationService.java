@@ -52,7 +52,7 @@ public class AiEvaluationService {
         requestPayload.put("messages", List.of(message));
 
         // Set max_tokens to allow enough room for feedback.
-        requestPayload.put("max_tokens", 50);
+        requestPayload.put("max_tokens", 100);
 
         // Set up HTTP headers for the request.
         HttpHeaders headers = new HttpHeaders();

@@ -4,6 +4,8 @@ import codeify.entities.User;
 import codeify.entities.role;
 import codeify.util.passwordHash;
 import codeify.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -17,6 +19,8 @@ import java.util.List;
 
 @Repository
 public class UserRepositoryImpl implements UserRepository {
+
+    private static final Logger log = LoggerFactory.getLogger(UserRepositoryImpl.class);
 
     @Autowired
     private DataSource dataSource;
@@ -100,13 +104,12 @@ public class UserRepositoryImpl implements UserRepository {
      */
     @Override
     public boolean register(User user) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
-        String hashedPassword = passwordHash.hashPassword(user.getPassword(), user.getSalt());
         String query = "INSERT INTO Users (username, email, password, salt, registration_date, role) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, user.getUsername());
             statement.setString(2, user.getEmail());
-            statement.setString(3, hashedPassword);
+            statement.setString(3, user.getPassword());
             statement.setString(4, user.getSalt());
             statement.setDate(5, Date.valueOf(user.getRegistrationDate()));
             statement.setString(6, user.getRole().toString());

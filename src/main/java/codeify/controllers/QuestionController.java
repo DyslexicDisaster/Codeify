@@ -76,6 +76,20 @@ public class QuestionController {
             return ResponseEntity.status(500).body("Error retrieving question: " + e.getMessage());
         }
     }
+    /**
+     * Grades a user's answer by evaluating it using the AI service and returns the result.
+     *
+     * The method receives a JSON payload containing the question ID and the user's answer, retrieves the
+     * corresponding question from the database, and calls the AI evaluation service to get a grade and feedback.
+     * It then parses the grade to an integer (defaulting to 0 if parsing fails) and builds a JSON response
+     * with the grade, AI-generated feedback, and a success message.
+     *
+     *
+     * @param gradeRequest a GradeRequest object containing the question ID and the user's answer
+     * @param session      the HTTP session used to retrieve the logged-in user
+     * @return a ResponseEntity containing a JSON object with keys "grade", "feedback", and "message", or
+     *         an error message if the grading process fails
+     */
     @PostMapping("/grade")
     public ResponseEntity<?> gradeAnswer(@RequestBody GradeRequest gradeRequest, HttpSession session) {
         // Retrieve the logged-in user from the session.
@@ -106,7 +120,7 @@ public class QuestionController {
                 grade = 0;
             }
 
-            // Update the user_progress table (omitting user progress update for simplicity if not needed).
+            // Update the user_progress table.
             // boolean updated = userProgressRepositoryImpl.updateUserProgress(userId, gradeRequest.getQuestionId(), grade);
             // if (!updated) {
             //     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

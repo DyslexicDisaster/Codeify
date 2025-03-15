@@ -31,12 +31,12 @@ public class AiEvaluationService {
 
     /**
      * Evaluates a user's answer using the AI API.
-     * <p>
+     *
      * It creates a prompt from the question's description and the user's answer,
      * sends it to the AI, and expects a response in the format "<grade>||<feedback>".
      * The response is split into a grade and feedback, which are returned in a Map.
      * If the response is invalid, it defaults to a grade of "0" and feedback "Unable to evaluate answer."
-     * </p>
+     *
      *
      * @param question the question object (its description is used in the prompt)
      * @param answer   the user's answer as a string

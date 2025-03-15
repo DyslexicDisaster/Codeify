@@ -10,4 +10,8 @@ import java.util.List;
 public interface QuestionRepository {
     List<Question> getQuestionByLanguage(int languageId) throws SQLException;
     Question getQuestionById(int questionId) throws SQLException;
+    boolean addQuestion(Question question) throws SQLException;
+    boolean updateQuestion(Question question) throws SQLException;
+    boolean deleteQuestion(int questionId) throws SQLException;
+    List<Question> getQuestions() throws SQLException;
 }

@@ -93,4 +93,85 @@ public class QuestionRepositoryImpl implements QuestionRepository {
         }
         return null;
     }
+
+    @Override
+    public boolean addQuestion(Question question) throws SQLException {
+        String query = "INSERT INTO questions (title, description, programming_language_id, question_type, difficulty, starter_code, ai_solution_required, correct_answer) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setString(1, question.getTitle());
+            statement.setString(2, question.getDescription());
+            statement.setInt(3, question.getProgrammingLanguage().getId());
+            statement.setString(4, question.getQuestionType().name());
+            statement.setString(5, question.getDifficulty().name());
+            statement.setString(6, question.getStarterCode());
+            statement.setBoolean(7, question.isAiSolutionRequired());
+            statement.setString(8, question.getCorrectAnswer());
+
+            return statement.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public boolean updateQuestion(Question question) throws SQLException {
+        String query = "UPDATE questions SET title = ?, description = ?, programming_language_id = ?, question_type = ?, difficulty = ?, starter_code = ?, ai_solution_required = ?, correct_answer = ? WHERE id = ?";
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setString(1, question.getTitle());
+            statement.setString(2, question.getDescription());
+            statement.setInt(3, question.getProgrammingLanguage().getId());
+            statement.setString(4, question.getQuestionType().name());
+            statement.setString(5, question.getDifficulty().name());
+            statement.setString(6, question.getStarterCode());
+            statement.setBoolean(7, question.isAiSolutionRequired());
+            statement.setString(8, question.getCorrectAnswer());
+            statement.setInt(9, question.getId());
+
+            return statement.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public boolean deleteQuestion(int questionId) throws SQLException {
+        String query = "DELETE FROM questions WHERE id = ?";
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setInt(1, questionId);
+            return statement.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public List<Question> getQuestions() throws SQLException {
+        List<Question> questionList = new ArrayList<>();
+        String query = "SELECT * FROM questions ORDER BY title";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query);
+             ResultSet resultSet = statement.executeQuery()) {
+
+            while (resultSet.next()) {
+                Question question = new Question();
+                question.setId(resultSet.getInt("id"));
+                question.setTitle(resultSet.getString("title"));
+                question.setDescription(resultSet.getString("description"));
+
+                ProgrammingLanguage programmingLanguage = new ProgrammingLanguage();
+                programmingLanguage.setId(resultSet.getInt("programming_language_id"));
+                question.setProgrammingLanguage(programmingLanguage);
+
+                question.setQuestionType(Question.QuestionType.valueOf(resultSet.getString("question_type")));
+                question.setDifficulty(Question.Difficulty.valueOf(resultSet.getString("difficulty")));
+
+                question.setStarterCode(resultSet.getString("starter_code"));
+                question.setAiSolutionRequired(resultSet.getBoolean("ai_solution_required"));
+                question.setCorrectAnswer(resultSet.getString("correct_answer"));
+                question.setCreatedAt(resultSet.getTimestamp("created_at").toLocalDateTime());
+
+                questionList.add(question);
+            }
+        }
+        return questionList;
+    }
 }

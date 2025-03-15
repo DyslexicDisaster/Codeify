@@ -96,6 +96,7 @@ public class UserController {
             Map<String, String> response = new HashMap<>();
             response.put("message", "Login successful");
             response.put("username", username);
+            response.put("role", user.getRole().toString());
             return ResponseEntity.ok(response);
 
         } catch (SQLException e) {

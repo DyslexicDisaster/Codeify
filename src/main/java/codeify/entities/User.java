@@ -1,4 +1,4 @@
-package codeify.model;
+package codeify.entities;
 
 import jakarta.persistence.*;
 import lombok.*;

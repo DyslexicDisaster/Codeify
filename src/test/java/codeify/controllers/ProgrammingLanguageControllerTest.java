@@ -1,6 +1,6 @@
 package codeify.controllers;
 
-import codeify.model.ProgrammingLanguage;
+import codeify.entities.ProgrammingLanguage;
 import codeify.persistance.ProgrammingLanguageRepositoryImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

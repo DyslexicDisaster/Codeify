@@ -1,6 +1,6 @@
 package codeify.repository;
 
-import codeify.model.ProgrammingLanguage;
+import codeify.entities.ProgrammingLanguage;
 import org.springframework.stereotype.Repository;
 
 import java.sql.SQLException;

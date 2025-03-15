@@ -1,6 +1,6 @@
 package codeify.controllers;
 
-import codeify.model.Question;
+import codeify.entities.Question;
 import codeify.persistance.QuestionRepositoryImpl;
 import codeify.persistance.UserProgressRepositoryImpl;
 import codeify.service.AiEvaluationService;

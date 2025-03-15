@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/codeify
+    username: root
+    password: kEMICEK123**
+  flyway:
+    enabled: true
+    repair: true

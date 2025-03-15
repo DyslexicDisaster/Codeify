@@ -1,4 +1,4 @@
-package codeify.model;
+package codeify.entities;
 
 public enum role {
     user,

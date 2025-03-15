@@ -50,6 +50,10 @@ public class Judge0Service {
                 code = preprocessJavaCode(code);
             }
 
+            if ("mysql".equalsIgnoreCase(language)) {
+                code = preprocessMySQLCode(code);
+            }
+
             // Create the submission
             String jsonBody = String.format("{\"source_code\":\"%s\",\"language_id\":%d}",
                     escapeJsonString(code), languageId);
@@ -59,6 +63,10 @@ public class Judge0Service {
             headers.set("X-RapidAPI-Key", judge0ApiKey);
             headers.set("X-RapidAPI-Host", judge0ApiHost);
             headers.set("Content-Type", "application/json");
+
+            String endpoint = "mysql".equalsIgnoreCase(language)
+                    ? judge0ApiUrl + "/submissions?wait=true&wait_time=10"
+                    : judge0ApiUrl + "/submissions?wait=true";
 
             // Submit code
             HttpEntity<String> entity = new HttpEntity<>(jsonBody, headers);
@@ -100,6 +108,10 @@ public class Judge0Service {
                 output = (String) response.get("stdout");
             }
 
+            if ("mysql".equalsIgnoreCase(language) && !output.isEmpty()) {
+                output = formatMySQLOutput(output);
+            }
+
             // If no output error message from judge0
             if (output.isEmpty() && response.containsKey("message") && response.get("message") != null) {
                 return "Judge0 message: " + response.get("message").toString();
@@ -115,29 +127,20 @@ public class Judge0Service {
         }
     }
 
-    /**
-     * Java preprocessor needed as it fixes the public class issue
-     */
+    private String preprocessMySQLCode(String code) {
+        return code;
+    }
+
+
+    private String formatMySQLOutput(String output) {
+        return output;
+    }
+
+
     private String preprocessJavaCode(String code) {
-        // Check if code has public class Solution
-        if (code.contains("public class Solution")) {
-            // Create a Main class with a main method
-            StringBuilder mainClass = new StringBuilder();
-            mainClass.append("public class Main {\n");
-            mainClass.append("    public static void main(String[] args) {\n");
-            mainClass.append("        Solution solution = new Solution();\n");
-            mainClass.append("        System.out.println(\"Solution instance created successfully.\");\n");
-            mainClass.append("    }\n");
-            mainClass.append("}\n\n");
-
-            // Change the Solution class to non-public to avoid errors
-            code = code.replace("public class Solution", "class Solution");
-
-            // Combine the classes .
-            return mainClass.toString() + code;
+        if (code.contains("public class Main") && code.contains("public static void main(String[] args)")) {
+            return code;
         }
-
-        // If we couldn't process it return the original code
         return code;
     }
 

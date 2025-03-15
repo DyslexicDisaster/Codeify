@@ -9,4 +9,8 @@ import java.util.List;
 @Repository
 public interface ProgrammingLanguageRepository {
     List<ProgrammingLanguage> getAllProgrammingLanguage() throws SQLException;
+    ProgrammingLanguage getProgrammingLanguageById(int languageId) throws SQLException;
+    boolean addProgrammingLanguage(ProgrammingLanguage language) throws SQLException;
+    boolean updateProgrammingLanguage(ProgrammingLanguage language) throws SQLException;
+    boolean deleteProgrammingLanguageById(int languageId) throws SQLException;
 }

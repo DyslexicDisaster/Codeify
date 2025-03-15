@@ -89,7 +89,7 @@ public class UserController {
                         .body("Invalid username/password combination");
             }
 
-            // Store the logged in user in the session!
+            // Store the logged-in user in the session!
             session.setAttribute("loggedInUser", user);
 
             // Returns a successful login message

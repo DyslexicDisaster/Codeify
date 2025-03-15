@@ -5,6 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 
+    //Reference for this class: https://www.baeldung.com/spring-security-api-key-authentication
+    //reference for api key: https://www.youtube.com/watch?v=twSW13hP2BI&t=317s
+
 public class ApiKeyAuthenticationFilter extends AbstractPreAuthenticatedProcessingFilter {
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiKeyAuthenticationFilter.class);
 

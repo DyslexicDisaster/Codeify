@@ -17,6 +17,8 @@ import java.time.LocalDate;
 @Table(name = "users")
 public class User {
 
+    //Reference for migrations: https://www.youtube.com/watch?v=WSnnJeqGtOQ
+
     @EqualsAndHashCode.Include
     @NonNull
     @Id

@@ -2,6 +2,7 @@ package codeify.persistance;
 
 import codeify.entities.User;
 import codeify.entities.role;
+import codeify.util.JwtUtil;
 import codeify.util.passwordHash;
 import codeify.repository.UserRepository;
 import org.slf4j.Logger;
@@ -131,7 +132,7 @@ public class UserRepositoryImpl implements UserRepository {
      * @throws SQLException if a database access error occurs.
      */
     @Override
-    public User login(String username, String password) throws SQLException {
+    public String login(String username, String password) throws SQLException {
         Connection conn = dataSource.getConnection();
         PreparedStatement stmt = null;
 
@@ -148,26 +149,15 @@ public class UserRepositoryImpl implements UserRepository {
             if (rs.next()) {
                 String salt = rs.getString("salt");
                 String hashedPassword = rs.getString("password");
-                role userRole = role.valueOf(rs.getString("role"));
-                LocalDate regDate = rs.getDate("registration_date").toLocalDate();
 
                 if (passwordHash.validatePassword(password, hashedPassword, salt)) {
-                    return new User(
-                            rs.getInt("user_id"),
-                            rs.getString("username"),
-                            hashedPassword,
-                            salt,
-                            rs.getString("email"),
-                            regDate,
-                            userRole
-                    );
+                    return JwtUtil.generateToken(username);
                 }
             }
         } finally {
             if (stmt != null) stmt.close();
             if (conn != null) conn.close();
         }
-
         return null;
     }
 

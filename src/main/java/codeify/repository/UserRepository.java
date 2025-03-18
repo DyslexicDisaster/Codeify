@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 public interface UserRepository {
     boolean register(User user) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException;
-    User login(String username, String password) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException;
+    String login(String username, String password) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException;
     boolean deleteUserById(int id) throws SQLException;
     List<User> getAllUsers() throws SQLException;
     boolean updateUser(User user) throws SQLException;

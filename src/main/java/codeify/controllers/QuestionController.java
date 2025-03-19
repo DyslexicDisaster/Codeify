@@ -5,10 +5,12 @@ import codeify.entities.Question;
 import codeify.persistance.QuestionRepositoryImpl;
 import codeify.persistance.UserProgressRepositoryImpl;
 import codeify.service.AiEvaluationService;
-import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
@@ -27,7 +29,6 @@ public class QuestionController {
     @Autowired
     private AiEvaluationService aiEvaluationService;
 
-    // Assume you have a bean for UserProgressRepositoryImpl
     @Autowired
     private UserProgressRepositoryImpl userProgressRepositoryImpl;
 
@@ -39,68 +40,61 @@ public class QuestionController {
      * @return List of questions
      */
     @GetMapping("/questions")
-    public ResponseEntity<?> showQuestions(@RequestParam(value = "languageId") Integer languageId){
-        try{
-            List<Question> questions;
-            if (languageId == null){
+    public ResponseEntity<?> showQuestions(@RequestParam(value = "languageId") Integer languageId) {
+        try {
+            if (languageId == null) {
                 return ResponseEntity.badRequest().body("ID of language cannot be null");
-            } else {
-                questions = questionRepositoryImpl.getQuestionByLanguage(languageId);
             }
+            List<Question> questions = questionRepositoryImpl.getQuestionByLanguage(languageId);
 
             if (questions.isEmpty()){
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Error retrieving questions: List is empty");
             }
-
             return ResponseEntity.ok(questions);
         } catch (SQLException e) {
             return ResponseEntity.status(500).body("Error retrieving questions: " + e.getMessage());
         }
     }
 
+    /**
+     * Get a question by ID
+     *
+     * @param questionId ID of the question
+     * @return Question
+     */
     @GetMapping("/question/{id}")
     public ResponseEntity<?> getQuestionById(@PathVariable("id") Integer questionId) {
         try {
             if (questionId == null) {
                 return ResponseEntity.badRequest().body("Question ID cannot be null");
             }
-
             Question question = questionRepositoryImpl.getQuestionById(questionId);
-
             if (question == null) {
                 return ResponseEntity.status(404).body("Question not found");
             }
-
             return ResponseEntity.ok(question);
         } catch (SQLException e) {
             return ResponseEntity.status(500).body("Error retrieving question: " + e.getMessage());
         }
     }
+
     /**
      * Grades a user's answer by evaluating it using the AI service and returns the result.
      *
-     * The method receives a JSON payload containing the question ID and the user's answer, retrieves the
-     * corresponding question from the database, and calls the AI evaluation service to get a grade and feedback.
-     * It then parses the grade to an integer (defaulting to 0 if parsing fails) and builds a JSON response
-     * with the grade, AI-generated feedback, and a success message.
-     *
-     *
      * @param gradeRequest a GradeRequest object containing the question ID and the user's answer
-     * @param session      the HTTP session used to retrieve the logged-in user
-     * @return a ResponseEntity containing a JSON object with keys "grade", "feedback", and "message", or
-     *         an error message if the grading process fails
+     * @return a ResponseEntity containing a JSON object with keys "grade", "feedback", and "message"
      */
+
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/grade")
-    public ResponseEntity<?> gradeAnswer(@RequestBody GradeRequest gradeRequest, HttpSession session) {
-        // Retrieve the logged-in user from the session.
-        /*Object userObj = session.getAttribute("loggedInUser");
-        if (userObj == null) {
+    public ResponseEntity<?> gradeAnswer(@RequestBody GradeRequest gradeRequest) {
+        // Retrieve the logged-in user from the SecurityContext
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not logged in");
         }
-        int userId = ((codeify.entities.User) userObj).getUserId();*/
 
         try {
-            // Validate input.
             if (gradeRequest.getQuestionId() == null) {
                 return ResponseEntity.badRequest().body("Question ID cannot be null");
             }

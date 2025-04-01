@@ -46,4 +46,53 @@ public class ProgrammingLanguageRepositoryImpl implements ProgrammingLanguageRep
         }
         return languageList;
     }
+
+    @Override
+    public ProgrammingLanguage getProgrammingLanguageById(int languageId) throws SQLException {
+        String query = "SELECT * FROM programming_languages WHERE id = ?";
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setInt(1, languageId);
+            try(ResultSet resultSet = statement.executeQuery()) {
+                if(resultSet.next()) {
+                    ProgrammingLanguage language = new ProgrammingLanguage();
+                    language.setId(resultSet.getInt("id"));
+                    language.setName(resultSet.getString("name"));
+                    return language;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public boolean addProgrammingLanguage(ProgrammingLanguage language) throws SQLException {
+        String query = "INSERT INTO programming_languages (name) VALUES (?)";
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, language.getName());
+            return statement.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public boolean updateProgrammingLanguage(ProgrammingLanguage language) throws SQLException {
+        String query = "UPDATE programming_languages SET name = ? WHERE id = ?";
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, language.getName());
+            statement.setInt(2, language.getId());
+            return statement.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public boolean deleteProgrammingLanguageById(int languageId) throws SQLException {
+        String query = "DELETE FROM programming_languages WHERE id = ?";
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setInt(1, languageId);
+            return statement.executeUpdate() > 0;
+        }
+    }
 }

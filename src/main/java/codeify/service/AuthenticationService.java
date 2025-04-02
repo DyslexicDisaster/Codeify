@@ -4,12 +4,15 @@ import codeify.dtos.LoginUserDto;
 import codeify.entities.User;
 import codeify.dtos.RegisterUserDto;
 import codeify.entities.role;
-import codeify.repository.UserRepository;
+import codeify.persistance.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.sql.SQLException;
 import java.time.LocalDate;
 
@@ -31,7 +34,7 @@ public class AuthenticationService {
     }
 
     // Register a new user with the provided details
-    public User register(RegisterUserDto dto) throws SQLException {
+    public boolean register(RegisterUserDto dto) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
         User user = new User();
         user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail());
@@ -39,7 +42,7 @@ public class AuthenticationService {
         user.setRegistrationDate(LocalDate.now());
         user.setRole(role.user);
 
-        return userRepository.save(user);
+        return userRepository.register(user);
     }
 
     // Authenticate a user with the provided details

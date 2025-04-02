@@ -14,16 +14,16 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 
-public class AiEvaluationServiceTest {
+public class AiEvaluationServiceImplTest {
 
     //References: https://www.baeldung.com/integration-testing-a-rest-api
-    private AiEvaluationService service;
+    private AiEvaluationServiceImpl service;
     private MockRestServiceServer mockServer;
     private RestTemplate restTemplate;
 
     @BeforeEach
     public void setup() {
-        service = new AiEvaluationService();
+        service = new AiEvaluationServiceImpl();
         restTemplate = new RestTemplate();
         service.setRestTemplate(restTemplate);
         // Create the mock server to intercept requests made by restTemplate.

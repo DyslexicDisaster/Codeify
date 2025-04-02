@@ -1,72 +1,65 @@
 package codeify.controllers;
 
-import codeify.auth.JwtUtil;
-import codeify.dtos.LoginResponse;
-import codeify.dtos.LoginUserDto;
-import codeify.dtos.RegisterUserDto;
 import codeify.entities.User;
-import codeify.service.AuthenticationService;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import codeify.persistance.UserRepositoryImpl;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/auth/")
 @CrossOrigin(origins = "http://localhost:3000")
 public class AuthenticationController {
 
-    private final JwtUtil jwtUtil;
-    private final AuthenticationService authenticationService;
+    @Autowired
+    private UserRepositoryImpl userRepository;
 
-    public AuthenticationController(JwtUtil jwtUtil, AuthenticationService authenticationService) {
-        this.jwtUtil = jwtUtil;
-        this.authenticationService = authenticationService;
+    @PostMapping("/login")
+    public ResponseEntity<?> loginUser(@RequestParam String username, @RequestParam String password) {
+        try {
+            String token = userRepository.login(username, password);
+            if (token != null) {
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "Login successful");
+                response.put("token", token);
+                response.put("username", username);
+                return ResponseEntity.ok(response);
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
+        } catch (SQLException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Login failed: " + e.getMessage());
+        }
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody RegisterUserDto registerUserDto) {
+    public ResponseEntity<?> registerUser(@RequestParam String username, @RequestParam String password, @RequestParam String email) {
         try {
-            User registeredUser = authenticationService.register(registerUserDto);
-            return ResponseEntity.ok(registeredUser);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
+            if (userRepository.existsByUsername(username)) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists");
+            }
+            if (userRepository.existsByEmail(email)) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already exists");
+            }
 
-    @PostMapping("/login")
-    public ResponseEntity<?> authenticate(@RequestBody LoginUserDto loginUserDto) {
-        try {
-            User authenticatedUser = authenticationService.authenticate(loginUserDto);
-            String jwtToken = jwtUtil.generateToken(Map.of(), authenticatedUser);
-            LoginResponse response = new LoginResponse(jwtToken, jwtUtil.getExpirationTime());
-            return ResponseEntity.ok(response);
-        } catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
+            User newUser = new User(username, password, email, null);
+            boolean registered = userRepository.register(newUser);
 
-    @GetMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletResponse response) {
-
-        try {
-            Cookie cookie = new Cookie("jwt", null);
-            cookie.setMaxAge(0);
-            cookie.setHttpOnly(true);
-            cookie.setPath("/");
-
-            response.addCookie(cookie);
-
-            return ResponseEntity.ok("Logout successful");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            if (registered) {
+                return ResponseEntity.ok("User registered successfully");
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Registration failed");
+            }
+        } catch (SQLException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
 }

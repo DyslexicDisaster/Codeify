@@ -13,6 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
+
+import static codeify.util.passwordHash.hashPassword;
 
 @RestController
 @RequestMapping("/admin/")
@@ -69,25 +72,21 @@ public class AdminController {
         }
     }
 
-    // Update user
     @PutMapping("/update_user")
     public ResponseEntity<String> updateUser(@RequestBody User updatedUser) {
         try {
-            User existingUser = userRepositoryImpl.getUserById(updatedUser.getUserId());
-            if (existingUser == null) {
+            Optional<User> existingUserOpt = userRepositoryImpl.getUserById(updatedUser.getUserId());
+            if (existingUserOpt.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
             }
 
+            User existingUser = existingUserOpt.get();
             existingUser.setUsername(updatedUser.getUsername());
             existingUser.setEmail(updatedUser.getEmail());
-
-            String saltToUse = (updatedUser.getSalt() != null && !updatedUser.getSalt().isBlank())
-                    ? updatedUser.getSalt()
-                    : existingUser.getSalt();
+            String newSalt = passwordHash.generateSalt();
 
             if (updatedUser.getPassword() != null && !updatedUser.getPassword().isBlank()) {
-                existingUser.setPassword(passwordHash.hashPassword(updatedUser.getPassword(), saltToUse));
-                existingUser.setSalt(saltToUse);
+                existingUser.setPassword(newSalt + ":" + hashPassword(updatedUser.getPassword(), newSalt));
             }
 
             existingUser.setRole(updatedUser.getRole());
@@ -123,8 +122,9 @@ public class AdminController {
     @PutMapping("/reset_password/{id}")
     public ResponseEntity<String> resetPassword(@PathVariable int id, @RequestParam String password) {
         try{
-            User user = userRepositoryImpl.getUserById(id);
-            boolean updated = userRepositoryImpl.resetPassword(id, passwordHash.hashPassword(password,user.getSalt()));
+            Optional<User> user = userRepositoryImpl.getUserById(id);
+            String newSalt = passwordHash.generateSalt();
+            boolean updated = userRepositoryImpl.resetPassword(id, newSalt + ":" + hashPassword(password, newSalt));
             if(updated){
                 return ResponseEntity.ok("Password reset successfully");
             } else {

@@ -1,5 +1,6 @@
 package codeify.util;
 
+import codeify.security.JwtUtil;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.junit.jupiter.api.Test;

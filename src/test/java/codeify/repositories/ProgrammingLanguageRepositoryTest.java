@@ -1,7 +1,7 @@
 package codeify.repositories;
 
 import codeify.entities.ProgrammingLanguage;
-import codeify.persistance.ProgrammingLanguageRepositoryImpl;
+import codeify.persistance.implementations.ProgrammingLanguageRepositoryImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,7 +1,8 @@
 package codeify.controllers;
 
+import codeify.controllers.api.ProgrammingLanguageController;
 import codeify.entities.ProgrammingLanguage;
-import codeify.persistance.ProgrammingLanguageRepositoryImpl;
+import codeify.persistance.implementations.ProgrammingLanguageRepositoryImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

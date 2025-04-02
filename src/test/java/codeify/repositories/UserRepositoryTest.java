@@ -1,7 +1,7 @@
 package codeify.repositories;
 
 import codeify.entities.*;
-import codeify.persistance.UserRepositoryImpl;
+import codeify.persistance.implementations.UserRepositoryImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

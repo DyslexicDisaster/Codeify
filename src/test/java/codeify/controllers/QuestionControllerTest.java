@@ -1,8 +1,9 @@
 package codeify.controllers;
 
+import codeify.controllers.api.QuestionController;
 import codeify.entities.ProgrammingLanguage;
 import codeify.entities.Question;
-import codeify.persistance.QuestionRepositoryImpl;
+import codeify.persistance.implementations.QuestionRepositoryImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

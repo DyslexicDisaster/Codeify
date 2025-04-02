@@ -1,14 +1,21 @@
 package codeify.controllers;
 
-import codeify.model.Question;
+import codeify.entities.GradeRequest;
+import codeify.entities.Question;
 import codeify.persistance.QuestionRepositoryImpl;
+import codeify.service.AiEvaluationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("api/question/")
@@ -18,6 +25,8 @@ public class QuestionController {
     @Autowired
     private QuestionRepositoryImpl questionRepositoryImpl;
 
+    @Autowired
+    private AiEvaluationService aiEvaluationService;
     /**
      * Get all questions by language
      *

@@ -4,7 +4,9 @@ import codeify.entities.User;
 import codeify.entities.role;
 import codeify.persistance.implementations.UserRepositoryImpl;
 import lombok.extern.slf4j.Slf4j;
-import javax.servlet.http.HttpServletResponse;
+//import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +29,10 @@ public class AuthenticationController {
     private UserRepositoryImpl userRepository;
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestParam String username, @RequestParam String password, HttpServletResponse response) {
+    public ResponseEntity<?> loginUser(
+            @RequestParam String username,
+            @RequestParam String password,
+            HttpServletResponse response) {  // Note: using jakarta.servlet.http.HttpServletResponse
         log.info("Received login request for user: {}", username);
         try {
             String token = userRepository.login(username, password);
@@ -38,16 +43,18 @@ public class AuthenticationController {
                 responseBody.put("token", token);
                 responseBody.put("username", username);
 
-                // Set JWT as HttpOnly cookie
-                response.addHeader("Set-Cookie", "jwtToken=" + token + "; HttpOnly; Path=/; SameSite=None; Secure");
+                // Set JWT as HttpOnly cookie using Lax for local testing
+                response.addHeader("Set-Cookie", "jwtToken=" + token + "; HttpOnly; Path=/; SameSite=Lax");
 
                 return ResponseEntity.ok(responseBody);
             }
             log.warn("Login failed for user: {} - Invalid username or password", username);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid username or password");
         } catch (SQLException e) {
             log.error("Login failed for user: {} - SQL Error: {}", username, e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Login failed: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Login failed: " + e.getMessage());
         }
     }
 

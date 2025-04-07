@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@Slf4j
+/*@Slf4j
 @RestController
 public class OAuthController {
 
@@ -36,4 +36,4 @@ public class OAuthController {
             response.sendRedirect("http://localhost:3000/login-failed");
         }
     }
-}
+}*/

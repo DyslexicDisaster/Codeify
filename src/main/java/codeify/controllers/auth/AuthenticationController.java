@@ -42,9 +42,10 @@ public class AuthenticationController {
                 responseBody.put("message", "Login successful");
                 responseBody.put("token", token);
                 responseBody.put("username", username);
+                responseBody.put("role", userRepository.findByUsername(username).get().getRole().toString());
 
                 // Set JWT as HttpOnly cookie using Lax for local testing
-                response.addHeader("Set-Cookie", "jwtToken=" + token + "; HttpOnly; Path=/; SameSite=Lax");
+                response.addHeader("Set-Cookie", "jwtToken=" + token + "; Path=/; SameSite=Lax");
 
                 return ResponseEntity.ok(responseBody);
             }

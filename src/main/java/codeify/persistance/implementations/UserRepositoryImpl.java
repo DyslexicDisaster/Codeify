@@ -5,6 +5,7 @@ import codeify.entities.role;
 import codeify.persistance.interfaces.UserRepository;
 import codeify.security.JwtUtil;
 import codeify.util.passwordHash;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -12,11 +13,11 @@ import javax.sql.DataSource;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Repository
 public class UserRepositoryImpl implements UserRepository {
 
@@ -28,7 +29,7 @@ public class UserRepositoryImpl implements UserRepository {
      */
     @Override
     public boolean register(User user) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
-        String query = "INSERT INTO users (username, email, password, registration_date, role) VALUES (?, ?, ?, ?, ?)";
+        String query = "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
 
@@ -40,8 +41,7 @@ public class UserRepositoryImpl implements UserRepository {
             statement.setString(1, user.getUsername());
             statement.setString(2, user.getEmail());
             statement.setString(3, saltedHashedPassword);
-            statement.setDate(4, Date.valueOf(user.getRegistrationDate()));
-            statement.setString(5, user.getRole().toString());
+            statement.setString(4, user.getRole().toString());
 
             int rowsInserted = statement.executeUpdate();
             return rowsInserted > 0;
@@ -56,14 +56,19 @@ public class UserRepositoryImpl implements UserRepository {
         String query = "SELECT * FROM users WHERE username = ?";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
+
+            log.info("Attempting to login user: {}", username);
             statement.setString(1, username);
+
             try (ResultSet rs = statement.executeQuery()) {
                 if (rs.next()) {
                     String storedPassword = rs.getString("password");
+                    log.info("User found in database: {}", username);
 
                     // Split the stored password to get salt and hash
                     String[] parts = storedPassword.split(":");
                     if (parts.length != 2) {
+                        log.warn("Stored password for user {} is not in the expected format.", username);
                         return null;
                     }
                     String salt = parts[0];
@@ -71,17 +76,26 @@ public class UserRepositoryImpl implements UserRepository {
 
                     // Hash the incoming password with the stored salt
                     String hashedInputPassword = passwordHash.hashPassword(password, salt);
+                    log.debug("Generated hash for login attempt: {}", hashedInputPassword);
 
                     if (hashedInputPassword.equals(storedHash)) {
+                        log.info("Login successful for user: {}", username);
                         return JwtUtil.generateToken(username);
+                    } else {
+                        log.warn("Password mismatch for user: {}", username);
                     }
+                } else {
+                    log.warn("User not found: {}", username);
                 }
-            } catch (NoSuchAlgorithmException e) {
-                throw new RuntimeException(e);
-            } catch (InvalidKeySpecException e) {
+            } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+                log.error("Error during password hashing for user {}: {}", username, e.getMessage());
                 throw new RuntimeException(e);
             }
+        } catch (SQLException e) {
+            log.error("SQL error during login for user {}: {}", username, e.getMessage());
+            throw e;
         }
+        log.info("Login failed for user: {}", username);
         return null;
     }
 
@@ -101,11 +115,11 @@ public class UserRepositoryImpl implements UserRepository {
                             resultSet.getDate("registration_date").toLocalDate(),
                             role.valueOf(resultSet.getString("role"))
                     );
-                    return Optional.of(user); // Wrap the user object in Optional
+                    return Optional.of(user);
                 }
             }
         }
-        return Optional.empty(); // Return an empty Optional if not found
+        return Optional.empty();
     }
 
     /**
@@ -146,7 +160,6 @@ public class UserRepositoryImpl implements UserRepository {
 
     /**
      * OAuth2 login and automatic registration.
-     */
     public User oauth2Login(String email, String name) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
         String query = "SELECT * FROM users WHERE email = ?";
         try (Connection connection = dataSource.getConnection();
@@ -170,6 +183,7 @@ public class UserRepositoryImpl implements UserRepository {
             }
         }
     }
+     */
 
     @Override
     public List<User> getAllUsers() throws SQLException {

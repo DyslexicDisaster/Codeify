@@ -45,13 +45,12 @@ public class User implements UserDetails {
     @Column(name = "role", nullable = false, columnDefinition = "ENUM('admin', 'user') DEFAULT 'user'")
     private role role;
 
-    public User(String username, String password, String email, LocalDate registrationDate) {
-        this.userId = 0;
+    public User(String username, String password, String email, LocalDate registrationDate, role role) {
         this.username = username;
         this.password = password;
         this.email = email;
         this.registrationDate = registrationDate;
-        this.role = role.user;
+        this.role = role;
     }
 
     @Override

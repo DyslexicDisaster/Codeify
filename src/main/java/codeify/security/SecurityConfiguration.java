@@ -69,6 +69,9 @@ public class SecurityConfiguration {
                 "x-api-key"
         ));
         configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.addAllowedHeader("*");
+        configuration.addAllowedMethod("*");
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

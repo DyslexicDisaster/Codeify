@@ -32,7 +32,7 @@ public class AuthenticationController {
     public ResponseEntity<?> loginUser(
             @RequestParam String username,
             @RequestParam String password,
-            HttpServletResponse response) {  // Note: using jakarta.servlet.http.HttpServletResponse
+            HttpServletResponse response) {
         log.info("Received login request for user: {}", username);
         try {
             String token = userRepository.login(username, password);

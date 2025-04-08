@@ -2,7 +2,9 @@ package codeify.controllers.api;
 
 import codeify.entities.GradeRequest;
 import codeify.entities.Question;
+import codeify.entities.User;
 import codeify.persistance.implementations.QuestionRepositoryImpl;
+import codeify.service.implementations.LastAttemptService;
 import codeify.service.interfaces.AiEvaluationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,6 +18,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("api/question/")
@@ -27,6 +30,10 @@ public class QuestionController {
 
     @Autowired
     private AiEvaluationService aiEvaluationService;
+
+    @Autowired
+    private LastAttemptService lastAttemptService;
+
     /**
      * Get all questions by language
      *
@@ -72,12 +79,35 @@ public class QuestionController {
     }
 
     /**
+     * Get the last attempt for a question by the current user
+     */
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/last-attempt/{questionId}")
+    public ResponseEntity<?> getLastAttempt(@PathVariable("questionId") Integer questionId) {
+        // Get the current user from the security context
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not logged in");
+        }
+
+        User user = (User) auth.getPrincipal();
+        Optional<String> lastAttempt = lastAttemptService.getLastAttempt(user.getUserId(), questionId);
+
+        if (lastAttempt.isPresent()) {
+            Map<String, String> response = new HashMap<>();
+            response.put("code", lastAttempt.get());
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No previous attempt found");
+        }
+    }
+
+    /**
      * Grades a user's answer by evaluating it using the AI service and returns the result.
      *
      * @param gradeRequest a GradeRequest object containing the question ID and the user's answer
      * @return a ResponseEntity containing a JSON object with keys "grade", "feedback", and "message"
      */
-
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/grade")
     public ResponseEntity<?> gradeAnswer(@RequestBody GradeRequest gradeRequest) {
@@ -87,10 +117,15 @@ public class QuestionController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not logged in");
         }
 
+        User user = (User) auth.getPrincipal();
+
         try {
             if (gradeRequest.getQuestionId() == null) {
                 return ResponseEntity.badRequest().body("Question ID cannot be null");
             }
+
+            // Save the user's last attempt
+            lastAttemptService.saveLastAttempt(user.getUserId(), gradeRequest.getQuestionId(), gradeRequest.getAnswer());
 
             // Retrieve the question from the database.
             Question question = questionRepositoryImpl.getQuestionById(gradeRequest.getQuestionId());
@@ -106,13 +141,6 @@ public class QuestionController {
             } catch (NumberFormatException e) {
                 grade = 0;
             }
-
-            // Update the user_progress table.
-            // boolean updated = userProgressRepositoryImpl.updateUserProgress(userId, gradeRequest.getQuestionId(), grade);
-            // if (!updated) {
-            //     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            //             .body("Failed to update user progress");
-            // }
 
             // Build the JSON response.
             Map<String, Object> response = new HashMap<>();

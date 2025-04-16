@@ -46,12 +46,8 @@ public class AuthenticationService {
     }
 
     // Authenticate a user with the provided details
-    public User authenticate(LoginUserDto dto) throws SQLException {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(dto.getUsername(), dto.getPassword())
-        );
-
-        return userRepository.findByUsername(dto.getUsername())
-                .orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
+    public User authenticateOAuthUser(String email) throws SQLException {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadCredentialsException("OAuth user not found"));
     }
 }

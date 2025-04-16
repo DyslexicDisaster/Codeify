@@ -7,6 +7,7 @@ import codeify.security.JwtUtil;
 import codeify.util.passwordHash;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
@@ -24,28 +25,78 @@ public class UserRepositoryImpl implements UserRepository {
     @Autowired
     private DataSource dataSource;
 
+    @Override
+    public User save(User user) throws SQLException {
+        String sql = """
+            INSERT INTO users (
+                username, password, email,
+                registration_date, role, provider
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            """;
+
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            ps.setString(1, user.getUsername());
+            ps.setString(2, user.getPassword());                // null for OAuth users
+            ps.setString(3, user.getEmail());
+            ps.setDate(4, Date.valueOf(user.getRegistrationDate()));
+            ps.setString(5, user.getRole().name());
+            ps.setString(6, user.getProvider());
+
+            int rows = ps.executeUpdate();                      // ← actually run it
+            if (rows == 0) {
+                throw new SQLException("Creating user failed, no rows affected.");
+            }
+
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    user.setUserId(keys.getInt(1));             // Optional: populate PK
+                }
+            }
+            return user;
+        }
+    }
+
     /**
      * Registers a new user with the given details.
      */
     @Override
     public boolean register(User user) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
-        String query = "INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)";
+        String query = "INSERT INTO users (username, password, email, registration_date, role, provider) VALUES (?, ?, ?, ?, ?, ?)";
+
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
 
-            // Generate salt and hash password
-            String salt = passwordHash.generateSalt();
-            String hashedPassword = passwordHash.hashPassword(user.getPassword(), salt);
-            String saltedHashedPassword = salt + ":" + hashedPassword;
+            // Handle password only for non-OAuth users
+            String passwordValue = null;
+            if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+                String salt = passwordHash.generateSalt();
+                String hashedPassword = passwordHash.hashPassword(user.getPassword(), salt);
+                passwordValue = salt + ":" + hashedPassword;
+            }
 
             statement.setString(1, user.getUsername());
-            statement.setString(2, user.getEmail());
-            statement.setString(3, saltedHashedPassword);
-            statement.setString(4, user.getRole().toString());
+            statement.setString(2, passwordValue);  // Can be NULL for OAuth users
+            statement.setString(3, user.getEmail());
+            statement.setDate(4, java.sql.Date.valueOf(user.getRegistrationDate()));
+            statement.setString(5, user.getRole().toString());
+            statement.setString(6, user.getProvider());
 
-            int rowsInserted = statement.executeUpdate();
-            return rowsInserted > 0;
+            return statement.executeUpdate() > 0;
         }
+    }
+
+    @Override
+    public String oauthLogin(String email) throws SQLException {
+        Optional<User> userOpt = findByEmail(email);
+        if (userOpt.isEmpty()) {
+            log.warn("OAuth user not found: {}", email);
+            return null;
+        }
+
+        User user = userOpt.get();
+        return JwtUtil.generateToken(user.getUsername());
     }
 
     /**
@@ -53,50 +104,64 @@ public class UserRepositoryImpl implements UserRepository {
      */
     @Override
     public String login(String username, String password) throws SQLException {
-        String query = "SELECT * FROM users WHERE username = ?";
+        Optional<User> userOpt = findByUsername(username);
+        if (userOpt.isEmpty()) {
+            log.warn("User not found: {}", username);
+            return null;
+        }
+
+        User user = userOpt.get();
+
+        // Handle OAuth users
+        if (user.getPassword() == null) {
+            log.warn("OAuth user {} attempted password login", username);
+            throw new BadCredentialsException("OAuth users must login via their provider");
+        }
+
+        // Verify password for regular users
+        String[] parts = user.getPassword().split(":");
+        if (parts.length != 2) {
+            log.warn("Invalid password format for user {}", username);
+            return null;
+        }
+
+        try {
+            String salt = parts[0];
+            String storedHash = parts[1];
+            String hashedInputPassword = passwordHash.hashPassword(password, salt);
+
+            if (hashedInputPassword.equals(storedHash)) {
+                return JwtUtil.generateToken(username);
+            }
+        } catch (Exception e) {
+            log.error("Password verification failed", e);
+        }
+
+        return null;
+    }
+
+    @Override
+    public Optional<User> findByEmail(String email) throws SQLException {
+        String query = "SELECT * FROM users WHERE email = ?";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
-
-            log.info("Attempting to login user: {}", username);
-            statement.setString(1, username);
-
-            try (ResultSet rs = statement.executeQuery()) {
-                if (rs.next()) {
-                    String storedPassword = rs.getString("password");
-                    log.info("User found in database: {}", username);
-
-                    // Split the stored password to get salt and hash
-                    String[] parts = storedPassword.split(":");
-                    if (parts.length != 2) {
-                        log.warn("Stored password for user {} is not in the expected format.", username);
-                        return null;
-                    }
-                    String salt = parts[0];
-                    String storedHash = parts[1];
-
-                    // Hash the incoming password with the stored salt
-                    String hashedInputPassword = passwordHash.hashPassword(password, salt);
-                    log.debug("Generated hash for login attempt: {}", hashedInputPassword);
-
-                    if (hashedInputPassword.equals(storedHash)) {
-                        log.info("Login successful for user: {}", username);
-                        return JwtUtil.generateToken(username);
-                    } else {
-                        log.warn("Password mismatch for user: {}", username);
-                    }
-                } else {
-                    log.warn("User not found: {}", username);
+            statement.setString(1, email);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    User user = new User(
+                            resultSet.getInt("user_id"),
+                            resultSet.getString("username"),
+                            resultSet.getString("password"),
+                            resultSet.getString("email"),
+                            resultSet.getDate("registration_date").toLocalDate(),
+                            role.valueOf(resultSet.getString("role")),
+                            resultSet.getString("provider")
+                    );
+                    return Optional.of(user);
                 }
-            } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-                log.error("Error during password hashing for user {}: {}", username, e.getMessage());
-                throw new RuntimeException(e);
             }
-        } catch (SQLException e) {
-            log.error("SQL error during login for user {}: {}", username, e.getMessage());
-            throw e;
         }
-        log.info("Login failed for user: {}", username);
-        return null;
+        return Optional.empty();
     }
 
     @Override
@@ -113,7 +178,8 @@ public class UserRepositoryImpl implements UserRepository {
                             resultSet.getString("password"),
                             resultSet.getString("email"),
                             resultSet.getDate("registration_date").toLocalDate(),
-                            role.valueOf(resultSet.getString("role"))
+                            role.valueOf(resultSet.getString("role")),
+                            resultSet.getString("provider")
                     );
                     return Optional.of(user);
                 }
@@ -199,7 +265,8 @@ public class UserRepositoryImpl implements UserRepository {
                         resultSet.getString("password"),
                         resultSet.getString("email"),
                         resultSet.getDate("registration_date").toLocalDate(),
-                        role.valueOf(resultSet.getString("role"))
+                        role.valueOf(resultSet.getString("role")),
+                        resultSet.getString("provider")
                 );
                 users.add(user);
             }
@@ -221,7 +288,8 @@ public class UserRepositoryImpl implements UserRepository {
                             resultSet.getString("password"),
                             resultSet.getString("email"),
                             resultSet.getDate("registration_date").toLocalDate(),
-                            role.valueOf(resultSet.getString("role"))
+                            role.valueOf(resultSet.getString("role")),
+                            resultSet.getString("provider")
                     );
                     return Optional.of(user);
                 }

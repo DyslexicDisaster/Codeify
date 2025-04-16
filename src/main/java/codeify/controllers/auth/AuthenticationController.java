@@ -1,15 +1,19 @@
 package codeify.controllers.auth;
 
+import codeify.dtos.UserDto;
 import codeify.entities.User;
 import codeify.entities.role;
 import codeify.persistance.implementations.UserRepositoryImpl;
 import lombok.extern.slf4j.Slf4j;
-//import javax.servlet.http.HttpServletResponse;
+import codeify.dtos.LoginUserDto;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.NoSuchAlgorithmException;
@@ -59,6 +63,20 @@ public class AuthenticationController {
         }
     }
 
+    // Spring controller
+    @GetMapping("/me")
+    public ResponseEntity<UserDto> getCurrentUser(Authentication authentication) throws SQLException {
+        // authentication.getName() is your JWT subject, which we set to the user's email
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        UserDto dto = new UserDto(user.getUsername(), user.getRole().name());
+        return ResponseEntity.ok(dto);
+    }
+
+
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestParam String username, @RequestParam String password, @RequestParam String email) {
         log.info("Received registration request for username: {}", username);
@@ -75,7 +93,7 @@ public class AuthenticationController {
             LocalDate registrationDate = LocalDate.now();
             role defaultRole = role.user;
 
-            User newUser = new User(username, password, email, registrationDate, defaultRole);
+            User newUser = new User(username, password, email, registrationDate, defaultRole, "local");
             boolean registered = userRepository.register(newUser);
 
             if (registered) {

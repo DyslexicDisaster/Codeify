@@ -12,7 +12,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 
@@ -22,10 +21,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
 
-    public JwtAuthenticationFilter(
-            JwtUtil jwtUtil,
-            UserDetailsService userDetailsService
-    ) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil,
+                                   UserDetailsService userDetailsService) {
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
     }
@@ -33,66 +30,55 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
-        // skip login & registration
-        if (path.startsWith("/api/auth/")) {
+
+        // ONLY skip login + register
+        if ("/api/auth/login".equals(path) ||
+                "/api/auth/register".equals(path)) {
             return true;
         }
-        // (optionally) skip error/OAuth2 endpoints too
+        // still skip your OAuth2 and error endpoints
         if (path.startsWith("/oauth2/") || "/error".equals(path)) {
             return true;
         }
+        // everything else—including /api/auth/me—will be filtered
         return false;
     }
 
     @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain) throws ServletException, IOException {
-
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
         String jwt = getJwtFromRequest(request);
-        if (jwt == null) {
-            // no token → just proceed as anonymous
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        try {
+        if (jwt != null && jwtUtil.validateToken(jwt, jwtUtil.getUsernameFromToken(jwt))) {
             String username = jwtUtil.getUsernameFromToken(jwt);
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null
-                    && jwtUtil.validateToken(jwt, username)) {
-
+            if (SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities()
-                );
-                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                UsernamePasswordAuthenticationToken auth =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails, null, userDetails.getAuthorities());
+                auth.setDetails(new WebAuthenticationDetailsSource()
+                        .buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
-            filterChain.doFilter(request, response);
-        } catch (Exception ex) {
-            logger.error("Could not set user authentication in security context", ex);
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
         }
+        filterChain.doFilter(request, response);
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {
-        // Check cookies first
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if ("jwtToken".equals(cookie.getName())) {
-                    return cookie.getValue();
+        // first check cookies
+        if (request.getCookies() != null) {
+            for (Cookie c : request.getCookies()) {
+                if ("jwtToken".equals(c.getName())) {
+                    return c.getValue();
                 }
             }
         }
-
-        // Fallback to Authorization header
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+        // fallback to Authorization header
+        String header = request.getHeader("Authorization");
+        if (header != null && header.startsWith("Bearer ")) {
+            return header.substring(7);
         }
-
         return null;
     }
 }

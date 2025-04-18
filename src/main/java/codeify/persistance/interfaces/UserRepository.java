@@ -20,8 +20,6 @@ public interface UserRepository {
 
     boolean existsByUsername(String username) throws SQLException;
 
-    String oauthLogin(String email) throws SQLException;
-
     String login(String username, String password) throws SQLException;
 
     Optional<User> findByEmail(String email) throws SQLException;

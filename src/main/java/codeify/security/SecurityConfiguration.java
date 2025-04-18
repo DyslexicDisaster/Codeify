@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -42,7 +43,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableMethodSecurity
 public class SecurityConfiguration {
 
-    // inject your beans…
+
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final CustomUserDetailsService userDetailsService;
     private final CustomOAuth2UserService customOAuth2UserService;
@@ -64,15 +65,30 @@ public class SecurityConfiguration {
         return new BCryptPasswordEncoder();
     }
 
+    /**
+     * Configures the security filter chain for the application.
+     *
+     * @param http the HttpSecurity object to configure
+     * @return the configured SecurityFilterChain
+     * @throws Exception if an error occurs during configuration
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(withDefaults())
+                .cors(Customizer.withDefaults())
                 .csrf(cs -> cs.disable())
+                .formLogin(fl -> fl.disable())
+                .sessionManagement(sm -> sm
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/", "/api/auth/**", "/oauth2/**", "/login/oauth2/code/*",
-                                "/error"            // ← add this
+                                "/",
+                                "/api/auth/login",
+                                "/api/auth/register",
+                                "/oauth2/**",
+                                "/login/oauth2/code/*"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -84,28 +100,43 @@ public class SecurityConfiguration {
                         .successHandler(oAuth2SuccessHandler)
                         .failureHandler(oAuth2FailureHandler())
                 )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                .exceptionHandling(e -> e
+                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                );
 
         return http.build();
     }
 
+    /**
+     * Configures the authentication provider for the application.
+     *
+     * @return the configured AuthenticationProvider
+     */
     @Bean
     public OAuth2UserService<OAuth2UserRequest, OAuth2User> oAuth2UserService() {
         DefaultOAuth2UserService delegate = new DefaultOAuth2UserService();
         return delegate::loadUser;
     }
 
+    /**
+     * Configures the authentication failure handler for OAuth2 login.
+     *
+     * @return the configured AuthenticationFailureHandler
+     */
     @Bean
     public AuthenticationFailureHandler oAuth2FailureHandler() {
         return (request, response, exception) -> {
             logger.error("[OAuth2] authentication failed", exception);
-            // include the exception message so you see why
             response.sendRedirect("http://localhost:3000/login?error=" +
                     URLEncoder.encode(exception.getMessage(), StandardCharsets.UTF_8));
         };
     }
 
+    /**
+     * Configures CORS (Cross-Origin Resource Sharing) for the application.
+     *
+     * @return the configured CorsConfigurationSource
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -120,6 +151,11 @@ public class SecurityConfiguration {
         return src;
     }
 
+    /**
+     * Configures the authentication provider for the application.
+     *
+     * @return the configured AuthenticationProvider
+     */
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -128,6 +164,13 @@ public class SecurityConfiguration {
         return authProvider;
     }
 
+    /**
+     * Configures the authentication manager for the application.
+     *
+     * @param config the AuthenticationConfiguration object
+     * @return the configured AuthenticationManager
+     * @throws Exception if an error occurs during configuration
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();

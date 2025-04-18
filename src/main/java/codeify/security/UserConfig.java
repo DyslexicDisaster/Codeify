@@ -19,14 +19,26 @@ public class UserConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> {
+        return principal -> {
             try {
-                // Retrieves user from the repository
-                return userRepository.findByUsername(username)
-                        // If user is not found, throws an exception
-                        .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+                // lookup by username, then by email
+                return userRepository.findByUsername(principal)
+                        .or(() -> {
+                            try {
+                                return userRepository.findByEmail(principal);
+                            } catch (SQLException e) {
+                                throw new RuntimeException(e);
+                            }
+                        })
+                        .map(u -> org.springframework.security.core.userdetails.User
+                                .withUsername(u.getUsername())
+                                .password(u.getPassword() != null ? u.getPassword() : "")
+                                .authorities("ROLE_" + u.getRole().name())
+                                .build()
+                        )
+                        .orElseThrow(() -> new UsernameNotFoundException("User not found: " + principal));
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("Database error occurred while fetching user details", e);
             }
         };
     }

@@ -38,20 +38,20 @@ public class UserRepositoryImpl implements UserRepository {
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, user.getUsername());
-            ps.setString(2, user.getPassword());                // null for OAuth users
+            ps.setString(2, user.getPassword());
             ps.setString(3, user.getEmail());
             ps.setDate(4, Date.valueOf(user.getRegistrationDate()));
             ps.setString(5, user.getRole().name());
             ps.setString(6, user.getProvider());
 
-            int rows = ps.executeUpdate();                      // ← actually run it
+            int rows = ps.executeUpdate();
             if (rows == 0) {
                 throw new SQLException("Creating user failed, no rows affected.");
             }
 
             try (ResultSet keys = ps.getGeneratedKeys()) {
                 if (keys.next()) {
-                    user.setUserId(keys.getInt(1));             // Optional: populate PK
+                    user.setUserId(keys.getInt(1));
                 }
             }
             return user;
@@ -68,7 +68,6 @@ public class UserRepositoryImpl implements UserRepository {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
 
-            // Handle password only for non-OAuth users
             String passwordValue = null;
             if (user.getPassword() != null && !user.getPassword().isEmpty()) {
                 String salt = passwordHash.generateSalt();
@@ -77,7 +76,7 @@ public class UserRepositoryImpl implements UserRepository {
             }
 
             statement.setString(1, user.getUsername());
-            statement.setString(2, passwordValue);  // Can be NULL for OAuth users
+            statement.setString(2, passwordValue);
             statement.setString(3, user.getEmail());
             statement.setDate(4, java.sql.Date.valueOf(user.getRegistrationDate()));
             statement.setString(5, user.getRole().toString());
@@ -87,20 +86,14 @@ public class UserRepositoryImpl implements UserRepository {
         }
     }
 
-    @Override
-    public String oauthLogin(String email) throws SQLException {
-        Optional<User> userOpt = findByEmail(email);
-        if (userOpt.isEmpty()) {
-            log.warn("OAuth user not found: {}", email);
-            return null;
-        }
-
-        User user = userOpt.get();
-        return JwtUtil.generateToken(user.getUsername());
-    }
 
     /**
-     * Logs in a user by verifying the username and password.
+     * Logs in a user with the given username and password.
+     *
+     * @param username Username of the user
+     * @param password Password of the user
+     * @return JWT token if login is successful, null otherwise
+     * @throws SQLException If a database access error occurs
      */
     @Override
     public String login(String username, String password) throws SQLException {
@@ -112,13 +105,11 @@ public class UserRepositoryImpl implements UserRepository {
 
         User user = userOpt.get();
 
-        // Handle OAuth users
         if (user.getPassword() == null) {
             log.warn("OAuth user {} attempted password login", username);
             throw new BadCredentialsException("OAuth users must login via their provider");
         }
 
-        // Verify password for regular users
         String[] parts = user.getPassword().split(":");
         if (parts.length != 2) {
             log.warn("Invalid password format for user {}", username);
@@ -140,6 +131,13 @@ public class UserRepositoryImpl implements UserRepository {
         return null;
     }
 
+    /**
+     * Finds a user by their email address.
+     *
+     * @param email Email address of the user
+     * @return Optional containing the user if found, empty otherwise
+     * @throws SQLException If a database access error occurs
+     */
     @Override
     public Optional<User> findByEmail(String email) throws SQLException {
         String query = "SELECT * FROM users WHERE email = ?";
@@ -164,6 +162,13 @@ public class UserRepositoryImpl implements UserRepository {
         return Optional.empty();
     }
 
+    /**
+     * Finds a user by their username.
+     *
+     * @param username Username of the user
+     * @return Optional containing the user if found, empty otherwise
+     * @throws SQLException If a database access error occurs
+     */
     @Override
     public Optional<User> findByUsername(String username) throws SQLException {
         String query = "SELECT * FROM users WHERE username = ?";
@@ -190,6 +195,10 @@ public class UserRepositoryImpl implements UserRepository {
 
     /**
      * Check if a username already exists.
+     *
+     * @param username Username to check
+     * @return true if the username exists, false otherwise
+     * @throws SQLException If a database access error occurs
      */
     @Override
     public boolean existsByUsername(String username) throws SQLException {
@@ -208,6 +217,10 @@ public class UserRepositoryImpl implements UserRepository {
 
     /**
      * Check if an email already exists.
+     *
+     * @param email Email to check
+     * @return true if the email exists, false otherwise
+     * @throws SQLException If a database access error occurs
      */
     @Override
     public boolean existsByEmail(String email) throws SQLException {
@@ -225,32 +238,11 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     /**
-     * OAuth2 login and automatic registration.
-    public User oauth2Login(String email, String name) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
-        String query = "SELECT * FROM users WHERE email = ?";
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setString(1, email);
-            try (ResultSet rs = statement.executeQuery()) {
-                if (rs.next()) {
-                    return new User(
-                            rs.getInt("user_id"),
-                            rs.getString("username"),
-                            rs.getString("password"),
-                            rs.getString("email"),
-                            rs.getDate("registration_date").toLocalDate(),
-                            role.valueOf(rs.getString("role"))
-                    );
-                } else {
-                    User newUser = new User(name, "", email, LocalDate.now());
-                    register(newUser);
-                    return newUser;
-                }
-            }
-        }
-    }
+     * Get all users from the database.
+     *
+     * @return List of all users
+     * @throws SQLException If a database access error occurs
      */
-
     @Override
     public List<User> getAllUsers() throws SQLException {
         String query = "SELECT * FROM users";
@@ -274,6 +266,13 @@ public class UserRepositoryImpl implements UserRepository {
         return users;
     }
 
+    /**
+     * Get a user by their ID.
+     *
+     * @param userId ID of the user
+     * @return Optional containing the user if found, empty otherwise
+     * @throws SQLException If a database access error occurs
+     */
     @Override
     public Optional<User> getUserById(int userId) throws SQLException {
         String query = "SELECT * FROM users WHERE user_id = ?";
@@ -298,6 +297,13 @@ public class UserRepositoryImpl implements UserRepository {
         return Optional.empty();
     }
 
+    /**
+     * Delete a user by their ID.
+     *
+     * @param userId ID of the user
+     * @return true if the user was deleted, false otherwise
+     * @throws SQLException If a database access error occurs
+     */
     @Override
     public boolean deleteUserById(int userId) throws SQLException {
         String query = "DELETE FROM users WHERE user_id = ?";
@@ -308,6 +314,13 @@ public class UserRepositoryImpl implements UserRepository {
         }
     }
 
+    /**
+     * Update a user's details.
+     *
+     * @param user User object with updated details
+     * @return true if the user was updated, false otherwise
+     * @throws SQLException If a database access error occurs
+     */
     @Override
     public boolean updateUser(User user) throws SQLException {
         String query = "UPDATE users SET username = ?, email = ?, password = ?, role = ? WHERE user_id = ?";
@@ -322,6 +335,14 @@ public class UserRepositoryImpl implements UserRepository {
         }
     }
 
+    /**
+     * Change a user's role.
+     *
+     * @param id ID of the user
+     * @param role New role for the user
+     * @return true if the role was changed, false otherwise
+     * @throws SQLException If a database access error occurs
+     */
     @Override
     public boolean changeRole(int id, role role) throws SQLException {
         String query = "UPDATE users SET role = ? WHERE user_id = ?";
@@ -333,6 +354,14 @@ public class UserRepositoryImpl implements UserRepository {
         }
     }
 
+    /**
+     * Reset a user's password.
+     *
+     * @param id ID of the user
+     * @param hashedPassword New hashed password
+     * @return true if the password was reset, false otherwise
+     * @throws SQLException If a database access error occurs
+     */
     @Override
     public boolean resetPassword(int id, String hashedPassword) throws SQLException {
         String query = "UPDATE users SET password = ? WHERE user_id = ?";

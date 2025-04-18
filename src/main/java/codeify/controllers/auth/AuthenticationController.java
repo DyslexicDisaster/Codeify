@@ -22,6 +22,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -66,16 +67,22 @@ public class AuthenticationController {
     // Spring controller
     @GetMapping("/me")
     public ResponseEntity<UserDto> getCurrentUser(Authentication authentication) throws SQLException {
-        // authentication.getName() is your JWT subject, which we set to the user's email
-        String email = authentication.getName();
+        String principal = authentication.getName();
+        log.debug("[AuthController] /me called, principal = {}", principal);
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        // try lookup by username, then by email
+        Optional<User> userOpt = userRepository.findByUsername(principal);
+        if (userOpt.isEmpty()) {
+            userOpt = userRepository.findByEmail(principal);
+        }
 
+        User user = userOpt
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + principal));
+
+        // always return the username (never the email)
         UserDto dto = new UserDto(user.getUsername(), user.getRole().name());
         return ResponseEntity.ok(dto);
     }
-
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestParam String username, @RequestParam String password, @RequestParam String email) {

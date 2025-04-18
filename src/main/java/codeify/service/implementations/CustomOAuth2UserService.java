@@ -15,7 +15,6 @@ import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
@@ -37,6 +36,13 @@ public class CustomOAuth2UserService
         this.userRepo = userRepo;
     }
 
+    /**
+     * Loads the user from the OAuth2 provider and processes it.
+     *
+     * @param req the OAuth2 user request
+     * @return the processed OAuth2 user
+     * @throws OAuth2AuthenticationException if an error occurs during processing
+     */
     @Override
     public OAuth2User loadUser(OAuth2UserRequest req)
             throws OAuth2AuthenticationException {
@@ -52,6 +58,15 @@ public class CustomOAuth2UserService
         }
     }
 
+    /**
+     * Processes the OAuth2 user by checking if it exists in the database and
+     * creating a new user if it doesn't.
+     *
+     * @param req      the OAuth2 user request
+     * @param oauthUser the OAuth2 user
+     * @return the processed OAuth2 user
+     * @throws SQLException if an error occurs during processing
+     */
     private OAuth2User process(OAuth2UserRequest req, OAuth2User oauthUser)
             throws SQLException {
         String registrationId = req.getClientRegistration().getRegistrationId();
@@ -66,7 +81,6 @@ public class CustomOAuth2UserService
             );
         }
 
-        // 1) Check if we already have this user
         Optional<User> existing = userRepo.findByEmail(email);
         User user;
         if (existing.isPresent()) {
@@ -75,20 +89,17 @@ public class CustomOAuth2UserService
                     user.getUsername(), email);
 
         } else {
-            // 2) First‑time login: create & save
             user = new User();
             user.setEmail(email);
             user.setUsername(oauthUser.getAttribute("name"));
             user.setProvider(registrationId);
             user.setRole(role.user);
             user.setRegistrationDate(LocalDate.now());
-            user.setPassword("");   // ensure non‑null for DB
+            user.setPassword("");
 
             logger.debug("[OAuth2] creating new user: {}", user.getUsername());
             userRepo.save(user);
         }
-
-        // 3) Build the Spring Security principal
         return new DefaultOAuth2User(
                 List.of(new SimpleGrantedAuthority("ROLE_USER")),
                 oauthUser.getAttributes(),

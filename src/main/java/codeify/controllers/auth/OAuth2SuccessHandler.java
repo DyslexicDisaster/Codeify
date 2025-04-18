@@ -15,7 +15,6 @@ import java.io.IOException;
 
 @Component
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
-
     private static final Logger logger = LoggerFactory.getLogger(OAuth2SuccessHandler.class);
 
     @Override
@@ -24,7 +23,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             HttpServletResponse res,
             Authentication auth) throws IOException {
 
-        String email = ((OAuth2User) auth.getPrincipal()).getAttribute("email");
+        OAuth2User oauth2User = (OAuth2User) auth.getPrincipal();
+        String email = oauth2User.<String>getAttribute("email");
+        if (email == null) email = oauth2User.<String>getAttribute("mail");
+        if (email == null) email = oauth2User.<String>getAttribute("userPrincipalName");
+
         logger.debug("[OAuth2] authentication success for email={}", email);
 
         String token = JwtUtil.generateToken(email);
@@ -33,7 +36,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String targetUrl = UriComponentsBuilder
                 .fromUriString("http://localhost:3000/oauth2/redirect")
                 .queryParam("token", token)
-                .queryParam("username", email)
                 .build()
                 .toUriString();
 

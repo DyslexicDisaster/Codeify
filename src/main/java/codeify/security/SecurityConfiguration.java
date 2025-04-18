@@ -5,18 +5,32 @@ import codeify.service.implementations.CustomOAuth2UserService;
 import codeify.service.implementations.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+import org.springframework.http.converter.FormHttpMessageConverter;
+import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.ClientHttpRequestExecution;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.http.HttpRequest;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
+import org.springframework.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.util.StreamUtils;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -32,10 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 
-import static com.mysql.cj.conf.PropertyKey.logger;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
@@ -61,6 +72,46 @@ public class SecurityConfiguration {
     }
 
     @Bean
+    public OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest>
+    customTokenResponseClient() {
+
+        DefaultAuthorizationCodeTokenResponseClient client =
+                new DefaultAuthorizationCodeTokenResponseClient();
+
+        RestTemplate restTemplate = new RestTemplate(Arrays.asList(
+                new FormHttpMessageConverter(),
+                new OAuth2AccessTokenResponseHttpMessageConverter()
+        ));
+
+        ClientHttpRequestInterceptor loggingInterceptor = new ClientHttpRequestInterceptor() {
+            @Override
+            public ClientHttpResponse intercept(
+                    HttpRequest req, byte[] body, ClientHttpRequestExecution exec)
+                    throws IOException {
+
+                logger.debug("=== OAuth2 Token Request ===");
+                logger.debug("URI:     {}", req.getURI());
+                logger.debug("Headers: {}", req.getHeaders());
+                logger.debug("Body:    {}", new String(body, StandardCharsets.UTF_8));
+                ClientHttpResponse response = exec.execute(req, body);
+                byte[] responseBody = StreamUtils.copyToByteArray(response.getBody());
+
+                logger.debug("=== OAuth2 Token Response ===");
+                logger.debug("Status:  {}", response.getStatusCode());
+                logger.debug("Headers: {}", response.getHeaders());
+                logger.debug("Body:    {}", new String(responseBody, StandardCharsets.UTF_8));
+
+                return new BufferingClientHttpResponseWrapper(response, responseBody);
+            }
+        };
+
+        restTemplate.setInterceptors(Collections.singletonList(loggingInterceptor));
+        client.setRestOperations(restTemplate);
+
+        return client;
+    }
+
+    @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
@@ -75,34 +126,28 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(Customizer.withDefaults())
+                .cors(withDefaults())
                 .csrf(cs -> cs.disable())
-                .formLogin(fl -> fl.disable())
-                .sessionManagement(sm -> sm
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/",
-                                "/api/auth/login",
-                                "/api/auth/register",
-                                "/oauth2/**",
-                                "/login/oauth2/code/*"
-                        ).permitAll()
+                .authorizeHttpRequests(a -> a
+                        .requestMatchers("/","/api/auth/**","/oauth2/**","/login/oauth2/code/*").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .loginPage("http://localhost:3000/login")
-                        .authorizationEndpoint(a -> a.baseUri("/oauth2/authorization"))
-                        .redirectionEndpoint(r -> r.baseUri("/login/oauth2/code/*"))
-                        .userInfoEndpoint(u -> u.userService(customOAuth2UserService))
+                        .tokenEndpoint(t -> t
+                                .accessTokenResponseClient(customTokenResponseClient())
+                        )
+                        .userInfoEndpoint(u -> u
+                                .oidcUserService(new OidcUserService())
+                                .userService(customOAuth2UserService)
+                        )
                         .successHandler(oAuth2SuccessHandler)
                         .failureHandler(oAuth2FailureHandler())
                 )
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-                );
+                )
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
     }
@@ -139,15 +184,13 @@ public class SecurityConfiguration {
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
-        configuration.setExposedHeaders(List.of("Authorization"));
-
+        CorsConfiguration cfg = new CorsConfiguration();
+        cfg.setAllowedOrigins(List.of("http://localhost:3000"));
+        cfg.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
+        cfg.setAllowCredentials(true);
+        cfg.setAllowedHeaders(List.of("*"));
         UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
-        src.registerCorsConfiguration("/**", configuration);
+        src.registerCorsConfiguration("/**", cfg);
         return src;
     }
 

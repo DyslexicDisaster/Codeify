@@ -31,16 +31,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
 
-        // ONLY skip login + register
-        if ("/api/auth/login".equals(path) ||
-                "/api/auth/register".equals(path)) {
+        if (path.equals("/api/auth/login") || path.equals("/api/auth/register")) {
             return true;
         }
-        // still skip your OAuth2 and error endpoints
         if (path.startsWith("/oauth2/") || "/error".equals(path)) {
             return true;
         }
-        // everything else—including /api/auth/me—will be filtered
         return false;
     }
 
@@ -66,7 +62,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {
-        // first check cookies
         if (request.getCookies() != null) {
             for (Cookie c : request.getCookies()) {
                 if ("jwtToken".equals(c.getName())) {
@@ -74,7 +69,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         }
-        // fallback to Authorization header
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             return header.substring(7);

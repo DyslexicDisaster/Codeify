@@ -12,6 +12,8 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository {
+    void updatePassword(int id, String pwd);
+
     User save(User user) throws SQLException;
 
     boolean register(User user) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException;

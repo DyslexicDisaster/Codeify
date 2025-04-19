@@ -31,10 +31,12 @@ CREATE TABLE questions (
                            question_type ENUM('CODING', 'LOGIC') NOT NULL,
                            difficulty ENUM('EASY', 'MEDIUM', 'HARD') NOT NULL,
 
-                           starter_code TEXT NULL,
-                           ai_solution_required BOOLEAN DEFAULT FALSE,
+    -- Fields for Coding Questions
+                           starter_code TEXT NULL, -- Pre-filled code snippet
+                           ai_solution_required BOOLEAN DEFAULT FALSE, -- If TRUE, use AI API for validation
 
-                           correct_answer TEXT NULL,
+    -- Fields for Logic Questions
+                           correct_answer TEXT NULL, -- Expected answer for logic questions
 
                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                            FOREIGN KEY (programming_language_id) REFERENCES programming_languages(id) ON DELETE SET NULL
@@ -73,13 +75,20 @@ CREATE TABLE comments (
                           FOREIGN KEY (blog_post_id) REFERENCES blog_posts(id) ON DELETE CASCADE
 );
 
+CREATE TABLE forgotten_password_tokens (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  token       VARCHAR(255) NOT NULL UNIQUE,
+  user_id     INT NOT NULL,
+  expiry_date DATETIME    NOT NULL
+);
+
 -- Leaderboard Table (Tracks User Rankings)
 CREATE TABLE leaderboard (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     language_id INT NOT NULL,
     total_score INT DEFAULT 0,
-    user_rank INT NOT NULL,
+    user_rank INT NOT NULL,  -- ✅ Renamed "rank" to "user_rank"
     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (language_id) REFERENCES programming_languages(id) ON DELETE CASCADE,

@@ -26,6 +26,20 @@ public class UserRepositoryImpl implements UserRepository {
     private DataSource dataSource;
 
     @Override
+    public void updatePassword(int id, String pwd) {
+        String sql = "UPDATE users SET password = ? WHERE user_id = ?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, pwd);
+            ps.setInt(2, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            log.error("Error updating password for user ID {}: {}", id, e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public User save(User user) throws SQLException {
         String sql = """
             INSERT INTO users (

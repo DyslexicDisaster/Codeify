@@ -31,10 +31,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
 
-        if (path.equals("/api/auth/login") || path.equals("/api/auth/register")) {
-            return true;
-        }
-        if (path.startsWith("/oauth2/") || "/error".equals(path)) {
+        if (path.equals("/api/auth/login")
+                || path.equals("/api/auth/register")
+                || path.equals("/api/auth/forgot-password")
+                || path.equals("/api/auth/reset-password")
+                || path.startsWith("/oauth2/")
+                || "/error".equals(path)) {
             return true;
         }
         return false;

@@ -4,8 +4,9 @@ import codeify.dtos.UserDto;
 import codeify.entities.User;
 import codeify.entities.role;
 import codeify.persistance.implementations.UserRepositoryImpl;
+import codeify.service.implementations.PasswordResetService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import codeify.dtos.LoginUserDto;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,12 +27,14 @@ import java.util.Optional;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/auth/")
+@RequestMapping("/api/auth")
 @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class AuthenticationController {
 
     @Autowired
     private UserRepositoryImpl userRepository;
+    @Autowired
+    private PasswordResetService passwordResetService;
 
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(
@@ -116,6 +119,42 @@ public class AuthenticationController {
         } catch (Exception e) {
             log.error("Unexpected error during registration for user {}: {}", username, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(
+            @RequestParam("email") String email,
+            HttpServletRequest request
+    ) {
+        log.info("Received password reset request for email: {}", email);
+
+        String appUrl = request.getScheme() + "://" +
+                request.getServerName() + ":" +
+                request.getServerPort();
+
+        try {
+            passwordResetService.createPasswordResetToken(email, appUrl);
+            return ResponseEntity.ok("Password reset link sent to " + email);
+        } catch (Exception e) {
+            log.error("Error sending password reset link to {}: {}", email, e.getMessage());
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getMessage());
+        }
+    }
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestParam String token, @RequestParam String newPassword) {
+        log.info("Received password reset request with token: {}", token);
+        try {
+            passwordResetService.resetPassword(token, newPassword);
+            return ResponseEntity.ok("Password reset successfully");
+        } catch (SQLException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+            log.error("Error resetting password with token {}: {}", token, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid password reset request with token {}: {}", token, e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 }

@@ -139,4 +139,14 @@ public class UserProgressRepositoryImpl {
             return progressData;
         }
     }
+    public int getTotalScore(int userId) throws SQLException {
+        String sql = "SELECT COALESCE(SUM(score),0) FROM user_progress WHERE user_id = ?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        }
+    }
 }

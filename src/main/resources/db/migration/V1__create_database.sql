@@ -1,775 +1,181 @@
-DROP DATABASE IF EXISTS codeify;
-CREATE DATABASE IF NOT EXISTS codeify;
-
-USE codeify;
+START TRANSACTION;
 
 -- Users Table
-CREATE TABLE users (
-   user_id INT PRIMARY KEY AUTO_INCREMENT,
-   username VARCHAR(50) UNIQUE NOT NULL,
-   email VARCHAR(100) UNIQUE NOT NULL,
-   role ENUM('admin', 'user') DEFAULT 'user' NOT NULL,
-   registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-   password VARCHAR(255) NULL
-);
-
-ALTER TABLE users ADD COLUMN provider VARCHAR(50) DEFAULT 'local';
-
-
--- Programming Languages Table
-CREATE TABLE programming_languages (
-                                       id INT AUTO_INCREMENT PRIMARY KEY,
-                                       name VARCHAR(50) NOT NULL UNIQUE -- Example: Java, MySQL, JavaScript
-);
-
--- Questions Table (Supports Both Logic & Coding Questions)
-CREATE TABLE questions (
-                           id INT AUTO_INCREMENT PRIMARY KEY,
-                           title VARCHAR(255) NOT NULL,
-                           description TEXT NOT NULL,
-                           programming_language_id INT, -- Nullable for logic questions
-                           question_type ENUM('CODING', 'LOGIC') NOT NULL,
-                           difficulty ENUM('EASY', 'MEDIUM', 'HARD') NOT NULL,
-
-    -- Fields for Coding Questions
-                           starter_code TEXT NULL, -- Pre-filled code snippet
-                           ai_solution_required BOOLEAN DEFAULT FALSE, -- If TRUE, use AI API for validation
-
-    -- Fields for Logic Questions
-                           correct_answer TEXT NULL, -- Expected answer for logic questions
-
-                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                           FOREIGN KEY (programming_language_id) REFERENCES programming_languages(id) ON DELETE SET NULL
-);
-
--- User Progress Table (Tracks Completion & Scores)
-CREATE TABLE user_progress (
-                               id INT AUTO_INCREMENT PRIMARY KEY,
-                               user_id INT NOT NULL,
-                               question_id INT NOT NULL,
-                               status ENUM('NOT_STARTED', 'IN_PROGRESS', 'COMPLETED') DEFAULT 'NOT_STARTED',
-                               score INT DEFAULT 0,
-                               last_attempt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                               FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-                               FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
-);
-
--- Blog Posts Table (Community Discussion)
-CREATE TABLE blog_posts (
-                            id INT AUTO_INCREMENT PRIMARY KEY,
-                            user_id INT NOT NULL,
-                            title VARCHAR(255) NOT NULL,
-                            content TEXT NOT NULL,
-                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                            FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
-
--- Comments Table (For Blog Posts)
-CREATE TABLE comments (
-                          id INT AUTO_INCREMENT PRIMARY KEY,
-                          user_id INT NOT NULL,
-                          blog_post_id INT NOT NULL,
-                          comment_text TEXT NOT NULL,
-                          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                          FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-                          FOREIGN KEY (blog_post_id) REFERENCES blog_posts(id) ON DELETE CASCADE
-);
-
-CREATE TABLE forgotten_password_tokens (
-  id          INT AUTO_INCREMENT PRIMARY KEY,
-  token       VARCHAR(255) NOT NULL UNIQUE,
-  user_id     INT NOT NULL,
-  expiry_date DATETIME    NOT NULL
-);
-
--- Leaderboard Table (Tracks User Rankings)
-CREATE TABLE leaderboard (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    language_id INT NOT NULL,
-    total_score INT DEFAULT 0,
-    user_rank INT NOT NULL,  -- ✅ Renamed "rank" to "user_rank"
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (language_id) REFERENCES programming_languages(id) ON DELETE CASCADE,
-    UNIQUE (user_id, language_id)
-);
-
--- Flyway Schema History Table
-CREATE TABLE flyway_schema_history (
-    installed_rank INT NOT NULL,
-    version VARCHAR(50),
-    description VARCHAR(200),
-    type VARCHAR(20),
-    script VARCHAR(1000),
-    checksum INT,
-    installed_by VARCHAR(100),
-    installed_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    execution_time INT,
-    success BOOLEAN,
-    PRIMARY KEY (installed_rank)
-);
-
-USE codeify;
-
--- Insert programming languages
-INSERT INTO programming_languages (name)
-VALUES
-    ('Java'),
-    ('JavaScript'),
-    ('MySQL');
-
--- Sample coding questions for Java
-INSERT INTO questions (
-    title,
-    description,
-    programming_language_id,
-    question_type,
-    difficulty,
-    starter_code,
-    ai_solution_required,
-    correct_answer
-)
-VALUES
-    (
-        'Even or Odd',
-        'Write a function that determines if a given number is even or odd. Return true if the number is even, and false if it is odd.',
-        1, -- Java
-        'CODING',
-        'EASY',
-        'public class Solution {
-    public boolean isEven(int number) {
-        // Your code here
-        return false;
-    }
-}',
-        true,
-        NULL
-    ),
-    (
-        'Reverse Array',
-        'Write a function that reverses an array of integers. For example, input [1,2,3,4] should return [4,3,2,1].',
-        1, -- Java
-        'CODING',
-        'MEDIUM',
-        'public class Solution {
-    public int[] reverseArray(int[] arr) {
-        // Your code here
-        return arr;
-    }
-}',
-        true,
-        NULL
-    ),
-    (
-        'Find Missing Number',
-        'Given an array containing n distinct numbers taken from 0 to n, find the missing number. For example, given [3,0,1] return 2.',
-        1, -- Java
-        'CODING',
-        'HARD',
-        'public class Solution {
-    public int findMissing(int[] nums) {
-        // Your code here
-        return 0;
-    }
-}',
-        true,
-        NULL
-    );
-
--- Logic questions for Java
-INSERT INTO questions (
-    title,
-    description,
-    programming_language_id,
-    question_type,
-    difficulty,
-    starter_code,
-    ai_solution_required,
-    correct_answer
-)
-VALUES
-    (
-        'Boolean Data Type',
-        'In Java, which primitive data type is used to hold the values true or false?',
-        1, -- Java
-        'LOGIC',
-        'EASY',
-        NULL,
-        false,
-        'boolean'
-    ),
-    (
-        'Default Boolean Value',
-        'What is the default value of a boolean instance variable in Java when it is not explicitly initialized?',
-        1, -- Java
-        'LOGIC',
-        'EASY',
-        NULL,
-        false,
-        'false'
-    );
-
--- Sample coding questions for JavaScript
-INSERT INTO questions (
-    title,
-    description,
-    programming_language_id,
-    question_type,
-    difficulty,
-    starter_code,
-    ai_solution_required,
-    correct_answer
-)
-VALUES
-    (
-        'Count Vowels',
-        'Write a function that counts the number of vowels (a, e, i, o, u) in a given string. The string will only contain lowercase letters.',
-        2, -- JavaScript
-        'CODING',
-        'EASY',
-        'function countVowels(str) {
-    // Your code here
-    return 0;
-}',
-        true,
-        NULL
-    ),
-    (
-        'Find Duplicates',
-        'Write a function that finds all duplicate numbers in an array. For example, given [1,2,3,2,4,3], return [2,3].',
-        2, -- JavaScript
-        'CODING',
-        'MEDIUM',
-        'function findDuplicates(arr) {
-    // Your code here
-    return [];
-}',
-        true,
-        NULL
-    ),
-    (
-        'Flatten Array',
-        'Write a function that flattens a nested array. For example, given [1,[2,[3,4]],5], return [1,2,3,4,5].',
-        2, -- JavaScript
-        'CODING',
-        'HARD',
-        'function flattenArray(arr) {
-    // Your code here
-    return [];
-}',
-        true,
-        NULL
-    );
-
--- Logic questions for JavaScript
-INSERT INTO questions (
-    title,
-    description,
-    programming_language_id,
-    question_type,
-    difficulty,
-    starter_code,
-    ai_solution_required,
-    correct_answer
-)
-VALUES
-    (
-        'Single-line Comment Syntax',
-        'In JavaScript, what symbol is used to indicate a single-line comment?',
-        2, -- JavaScript
-        'LOGIC',
-        'EASY',
-        NULL,
-        false,
-        '//'
-    ),
-    (
-        'Boolean Data Type in JavaScript',
-        'What is the data type used to represent true or false values in JavaScript?',
-        2, -- JavaScript
-        'LOGIC',
-        'EASY',
-        NULL,
-        false,
-        'boolean'
-    );
-
--- Sample coding questions for MySQL
-INSERT INTO questions (
-    title,
-    description,
-    programming_language_id,
-    question_type,
-    difficulty,
-    starter_code,
-    ai_solution_required,
-    correct_answer
-)
-VALUES
-    (
-        'Select All Employees',
-        'Write a query to select all employees ordered by their salary in descending order. Return the employee name and salary.',
-        3, -- MySQL
-        'CODING',
-        'EASY',
-        '/* Write your MySQL query statement below */
--- Given table:
--- employees (id, name, salary)
-SELECT name, salary FROM employees ORDER BY salary DESC;',
-        true,
-        NULL
-    ),
-    (
-        'Department Averages',
-        'Write a query to find the average salary for each department. Return the department name and the average salary, ordered by average salary descending.',
-        3, -- MySQL
-        'CODING',
-        'MEDIUM',
-        '/* Write your MySQL query statement below */
--- Given tables:
--- employees (id, name, salary, department_id)
--- departments (id, name)
-SELECT d.name AS department_name, AVG(e.salary) AS average_salary
-FROM employees e
-JOIN departments d ON e.department_id = d.id
-GROUP BY d.name
-ORDER BY average_salary DESC;',
-        true,
-        NULL
-    ),
-    (
-        'Active Users',
-        'Write a query to find users who logged in for 3 or more consecutive days. Return the user_id and the start date of their streak.',
-        3, -- MySQL
-        'CODING',
-        'HARD',
-        '/* Write your MySQL query statement below */
--- Given table:
--- logins (user_id, login_date)
-SELECT user_id, MIN(login_date) AS streak_start
-FROM (
-    SELECT user_id, login_date,
-           DATE_SUB(login_date, INTERVAL ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_date) DAY) AS grp
-    FROM logins
-) AS grouped
-GROUP BY user_id, grp
-HAVING COUNT(*) >= 3;',
-        true,
-        NULL
-    );
-
--- Logic questions for MySQL
-INSERT INTO questions (
-    title,
-    description,
-    programming_language_id,
-    question_type,
-    difficulty,
-    starter_code,
-    ai_solution_required,
-    correct_answer
-)
-VALUES
-    (
-        'Remove Duplicate Rows',
-        'Which SQL keyword is used to remove duplicate rows from the results of a SELECT query?',
-        3, -- MySQL
-        'LOGIC',
-        'EASY',
-        NULL,
-        false,
-        'DISTINCT'
-    ),
-    (
-        'Wildcard in SQL LIKE Clause',
-        'In SQL, what symbol is used as a wildcard in the LIKE clause to match any sequence of characters?',
-        3, -- MySQL
-        'LOGIC',
-        'EASY',
-        NULL,
-        false,
-        '%'
-    );
-
-DROP DATABASE IF EXISTS codeify_test;
-CREATE DATABASE IF NOT EXISTS codeify_test;
-
-USE codeify_test;
-
--- Users Table
-DROP TABLE IF EXISTS users;
-CREATE TABLE users (
-                       user_id INT PRIMARY KEY AUTO_INCREMENT,
-                       username VARCHAR(50) UNIQUE NOT NULL,
-                       email VARCHAR(100) UNIQUE NOT NULL,
-                       password VARCHAR(255) NOT NULL,
-                       role ENUM('admin', 'user') DEFAULT 'user',
-                       registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                       salt VARCHAR(255) NOT NULL
+CREATE TABLE IF NOT EXISTS users (
+   user_id            INT               PRIMARY KEY AUTO_INCREMENT,
+   username           VARCHAR(50)       UNIQUE NOT NULL,
+   email              VARCHAR(100)      UNIQUE NOT NULL,
+   role               ENUM('admin','user') NOT NULL DEFAULT 'user',
+   registration_date  TIMESTAMP         NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   password           VARCHAR(255),
+   provider           VARCHAR(50)       NOT NULL DEFAULT 'local'
 );
 
 -- Programming Languages Table
-CREATE TABLE programming_languages (
-                                       id INT AUTO_INCREMENT PRIMARY KEY,
-                                       name VARCHAR(50) NOT NULL UNIQUE -- Example: Java, MySQL, JavaScript
+CREATE TABLE IF NOT EXISTS programming_languages (
+   id    INT AUTO_INCREMENT PRIMARY KEY,
+   name  VARCHAR(50) NOT NULL UNIQUE
 );
 
--- Questions Table (Supports Both Logic & Coding Questions)
-CREATE TABLE questions (
-                           id INT AUTO_INCREMENT PRIMARY KEY,
-                           title VARCHAR(255) NOT NULL,
-                           description TEXT NOT NULL,
-                           programming_language_id INT, -- Nullable for logic questions
-                           question_type ENUM('CODING', 'LOGIC') NOT NULL,
-                           difficulty ENUM('EASY', 'MEDIUM', 'HARD') NOT NULL,
-
-    -- Fields for Coding Questions
-                           starter_code TEXT NULL, -- Pre-filled code snippet
-                           ai_solution_required BOOLEAN DEFAULT FALSE, -- If TRUE, use AI API for validation
-
-    -- Fields for Logic Questions
-                           correct_answer TEXT NULL, -- Expected answer for logic questions
-
-                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                           FOREIGN KEY (programming_language_id) REFERENCES programming_languages(id) ON DELETE SET NULL
+-- Questions Table
+CREATE TABLE IF NOT EXISTS questions (
+   id                        INT AUTO_INCREMENT PRIMARY KEY,
+   title                     VARCHAR(255) NOT NULL,
+   description               TEXT         NOT NULL,
+   programming_language_id   INT,
+   question_type             ENUM('CODING','LOGIC') NOT NULL,
+   difficulty                ENUM('EASY','MEDIUM','HARD') NOT NULL,
+   starter_code              TEXT         NULL,
+   ai_solution_required      BOOLEAN      NOT NULL DEFAULT FALSE,
+   correct_answer            TEXT         NULL,
+   created_at                TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   FOREIGN KEY (programming_language_id)
+     REFERENCES programming_languages(id) ON DELETE SET NULL
 );
 
--- User Progress Table (Tracks Completion & Scores)
-CREATE TABLE user_progress (
-                               id INT AUTO_INCREMENT PRIMARY KEY,
-                               user_id INT NOT NULL,
-                               question_id INT NOT NULL,
-                               status ENUM('NOT_STARTED', 'IN_PROGRESS', 'COMPLETED') DEFAULT 'NOT_STARTED',
-                               score INT DEFAULT 0,
-                               last_attempt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                               FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-                               FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
+-- User Progress Table
+CREATE TABLE IF NOT EXISTS user_progress (
+   id           INT AUTO_INCREMENT PRIMARY KEY,
+   user_id      INT NOT NULL,
+   question_id  INT NOT NULL,
+   status       ENUM('NOT_STARTED','IN_PROGRESS','COMPLETED') NOT NULL DEFAULT 'NOT_STARTED',
+   score        INT NOT NULL DEFAULT 0,
+   last_attempt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   FOREIGN KEY (user_id)     REFERENCES users(user_id)     ON DELETE CASCADE,
+   FOREIGN KEY (question_id) REFERENCES questions(id)       ON DELETE CASCADE
 );
 
--- Leaderboard Table (Tracks Rankings)
-CREATE TABLE leaderboard (
-                             id INT AUTO_INCREMENT PRIMARY KEY,
-                             user_id INT NOT NULL UNIQUE,
-                             total_score INT DEFAULT 0,
-                             last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                             FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+-- Leaderboard Table
+CREATE TABLE IF NOT EXISTS leaderboard (
+   id           INT AUTO_INCREMENT PRIMARY KEY,
+   user_id      INT NOT NULL,
+   language_id  INT NOT NULL,
+   total_score  INT NOT NULL DEFAULT 0,
+   user_rank    INT NOT NULL,
+   last_updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+   UNIQUE(user_id, language_id),
+   FOREIGN KEY (user_id)     REFERENCES users(user_id)             ON DELETE CASCADE,
+   FOREIGN KEY (language_id) REFERENCES programming_languages(id) ON DELETE CASCADE
 );
 
--- Blog Posts Table (Community Discussion)
-CREATE TABLE blog_posts (
-                            id INT AUTO_INCREMENT PRIMARY KEY,
-                            user_id INT NOT NULL,
-                            title VARCHAR(255) NOT NULL,
-                            content TEXT NOT NULL,
-                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                            FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+-- Blog Posts and Comments Tables
+CREATE TABLE IF NOT EXISTS blog_posts (
+   id          INT AUTO_INCREMENT PRIMARY KEY,
+   user_id     INT NOT NULL,
+   title       VARCHAR(255) NOT NULL,
+   content     TEXT         NOT NULL,
+   created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
--- Comments Table (User Engagement)
-CREATE TABLE comments (
-                          id INT AUTO_INCREMENT PRIMARY KEY,
-                          user_id INT NOT NULL,
-                          blog_post_id INT NOT NULL,
-                          comment_text TEXT NOT NULL,
-                          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                          FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-                          FOREIGN KEY (blog_post_id) REFERENCES blog_posts(id) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS comments (
+   id           INT AUTO_INCREMENT PRIMARY KEY,
+   user_id      INT NOT NULL,
+   blog_post_id INT NOT NULL,
+   comment_text TEXT NOT NULL,
+   created_at   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   FOREIGN KEY (user_id)       REFERENCES users(user_id)      ON DELETE CASCADE,
+   FOREIGN KEY (blog_post_id)  REFERENCES blog_posts(id)      ON DELETE CASCADE
 );
 
-CREATE TABLE flyway_schema_history (
-    installed_rank INT NOT NULL,
-    version VARCHAR(50),
-    description VARCHAR(200),
-    type VARCHAR(20),
-    script VARCHAR(1000),
-    checksum INT,
-    installed_by VARCHAR(100),
-    installed_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    execution_time INT,
-    success BOOLEAN,
-    PRIMARY KEY (installed_rank)
+-- Forgotten Password Tokens Table
+CREATE TABLE IF NOT EXISTS forgotten_password_tokens (
+   id          INT AUTO_INCREMENT PRIMARY KEY,
+   token       VARCHAR(255) NOT NULL UNIQUE,
+   user_id     INT          NOT NULL,
+   expiry_date DATETIME     NOT NULL,
+   FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
+-- Flyway Schema History
+CREATE TABLE IF NOT EXISTS flyway_schema_history (
+   installed_rank INT        NOT NULL PRIMARY KEY,
+   version        VARCHAR(50),
+   description    VARCHAR(200),
+   type           VARCHAR(20),
+   script         VARCHAR(1000),
+   checksum       INT,
+   installed_by   VARCHAR(100),
+   installed_on   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   execution_time INT,
+   success        BOOLEAN
+);
 
-USE codeify_test;
+COMMIT;
 
--- Insert programming languages
-INSERT INTO programming_languages (name)
+DELIMITER $$
+CREATE TRIGGER trg_upd_leaderboard
+AFTER INSERT ON user_progress
+FOR EACH ROW
+BEGIN
+  DECLARE lang_id INT;
+  DECLARE total INT;
+
+  SELECT programming_language_id
+    INTO lang_id
+  FROM questions
+   WHERE id = NEW.question_id;
+
+  SELECT COALESCE(SUM(up.score),0)
+    INTO total
+  FROM user_progress up
+    JOIN questions q ON up.question_id = q.id
+   WHERE up.user_id = NEW.user_id
+     AND q.programming_language_id = lang_id
+     AND up.status = 'COMPLETED';
+
+  INSERT INTO leaderboard(user_id,language_id,total_score,user_rank)
+    VALUES(NEW.user_id, lang_id, total, 0)
+  ON DUPLICATE KEY UPDATE
+    total_score = total,
+    last_updated = CURRENT_TIMESTAMP;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE cleanup_expired_tokens()
+BEGIN
+  DELETE FROM forgotten_password_tokens
+    WHERE expiry_date < NOW();
+END$$
+DELIMITER ;
+
+INSERT INTO programming_languages(name) VALUES('Java'),('JavaScript'),('MySQL');
+
+INSERT INTO questions(title,description,programming_language_id,question_type,difficulty,starter_code,ai_solution_required)
 VALUES
-    ('Java'),
-    ('JavaScript'),
-    ('MySQL');
+('Even or Odd','Determine if number is even',1,'CODING','EASY','public class S{public boolean isEven(int n){return false;}}',TRUE),
+('Reverse Array','Reverse int[]',1,'CODING','MEDIUM','public class S{public int[] rev(int[] a){return a;}}',TRUE),
+('Find Missing Number','Find missing 0..n',1,'CODING','HARD','public class S{public int find(int[] a){return 0;}}',TRUE);
 
--- Sample coding questions for Java
-INSERT INTO questions (
-    title,
-    description,
-    programming_language_id,
-    question_type,
-    difficulty,
-    starter_code,
-    ai_solution_required,
-    correct_answer
-)
+INSERT INTO questions(title,description,programming_language_id,question_type,difficulty,correct_answer)
 VALUES
-    (
-        'Even or Odd',
-        'Write a function that determines if a given number is even or odd. Return true if the number is even, and false if it is odd.',
-        1, -- Java
-        'CODING',
-        'EASY',
-        'public class Solution {
-    public boolean isEven(int number) {
-        // Your code here
-        return false;
-    }
-}',
-        true,
-        NULL
-    ),
-    (
-        'Reverse Array',
-        'Write a function that reverses an array of integers. For example, input [1,2,3,4] should return [4,3,2,1].',
-        1, -- Java
-        'CODING',
-        'MEDIUM',
-        'public class Solution {
-    public int[] reverseArray(int[] arr) {
-        // Your code here
-        return arr;
-    }
-}',
-        true,
-        NULL
-    ),
-    (
-        'Find Missing Number',
-        'Given an array containing n distinct numbers taken from 0 to n, find the missing number. For example, given [3,0,1] return 2.',
-        1, -- Java
-        'CODING',
-        'HARD',
-        'public class Solution {
-    public int findMissing(int[] nums) {
-        // Your code here
-        return 0;
-    }
-}',
-        true,
-        NULL
-    );
+('Boolean Data Type','Which type holds true/false?',1,'LOGIC','EASY','boolean'),
+('Default Boolean Value','Default boolean field value?',1,'LOGIC','EASY','false');
 
--- Logic questions for Java
-INSERT INTO questions (
-    title,
-    description,
-    programming_language_id,
-    question_type,
-    difficulty,
-    starter_code,
-    ai_solution_required,
-    correct_answer
-)
+INSERT INTO questions(title,description,programming_language_id,question_type,difficulty,starter_code,ai_solution_required)
 VALUES
-    (
-        'Boolean Data Type',
-        'In Java, which primitive data type is used to hold the values true or false?',
-        1, -- Java
-        'LOGIC',
-        'EASY',
-        NULL,
-        false,
-        'boolean'
-    ),
-    (
-        'Default Boolean Value',
-        'What is the default value of a boolean instance variable in Java when it is not explicitly initialized?',
-        1, -- Java
-        'LOGIC',
-        'EASY',
-        NULL,
-        false,
-        'false'
-    );
+('Count Vowels','Count vowels in string',2,'CODING','EASY','function countV(str){return 0;}',TRUE),
+('Find Duplicates','Return duplicates',2,'CODING','MEDIUM','function dup(a){return [];}',TRUE),
+('Flatten Array','Flatten nested arr',2,'CODING','HARD','function flat(a){return [];}',TRUE);
 
--- Sample coding questions for JavaScript
-INSERT INTO questions (
-    title,
-    description,
-    programming_language_id,
-    question_type,
-    difficulty,
-    starter_code,
-    ai_solution_required,
-    correct_answer
-)
+INSERT INTO questions(title,description,programming_language_id,question_type,difficulty,correct_answer)
 VALUES
-    (
-        'Count Vowels',
-        'Write a function that counts the number of vowels (a, e, i, o, u) in a given string. The string will only contain lowercase letters.',
-        2, -- JavaScript
-        'CODING',
-        'EASY',
-        'function countVowels(str) {
-    // Your code here
-    return 0;
-}',
-        true,
-        NULL
-    ),
-    (
-        'Find Duplicates',
-        'Write a function that finds all duplicate numbers in an array. For example, given [1,2,3,2,4,3], return [2,3].',
-        2, -- JavaScript
-        'CODING',
-        'MEDIUM',
-        'function findDuplicates(arr) {
-    // Your code here
-    return [];
-}',
-        true,
-        NULL
-    ),
-    (
-        'Flatten Array',
-        'Write a function that flattens a nested array. For example, given [1,[2,[3,4]],5], return [1,2,3,4,5].',
-        2, -- JavaScript
-        'CODING',
-        'HARD',
-        'function flattenArray(arr) {
-    // Your code here
-    return [];
-}',
-        true,
-        NULL
-    );
+('Single‑line Comment','Symbol for single comment',2,'LOGIC','EASY','//'),
+('JS Boolean Type','Type for true/false',2,'LOGIC','EASY','boolean');
 
--- Logic questions for JavaScript
-INSERT INTO questions (
-    title,
-    description,
-    programming_language_id,
-    question_type,
-    difficulty,
-    starter_code,
-    ai_solution_required,
-    correct_answer
-)
+INSERT INTO questions(title,description,programming_language_id,question_type,difficulty,starter_code,ai_solution_required)
 VALUES
-    (
-        'Single-line Comment Syntax',
-        'In JavaScript, what symbol is used to indicate a single-line comment?',
-        2, -- JavaScript
-        'LOGIC',
-        'EASY',
-        NULL,
-        false,
-        '//'
-    ),
-    (
-        'Boolean Data Type in JavaScript',
-        'What is the data type used to represent true or false values in JavaScript?',
-        2, -- JavaScript
-        'LOGIC',
-        'EASY',
-        NULL,
-        false,
-        'boolean'
-    );
+('Select All','Order employees by salary',3,'CODING','EASY','SELECT name,salary FROM employees ORDER BY salary DESC;',TRUE),
+('Dept Averages','Avg salary per dept',3,'CODING','MEDIUM','SELECT d.name,AVG(e.salary) FROM employees e JOIN departments d ON e.dept_id=d.id GROUP BY d.name;',TRUE),
+('Active Users','3‑day login streak',3,'CODING','HARD','SELECT user_id,MIN(login_date) FROM (SELECT user_id,login_date,DATE_SUB(login_date,INTERVAL ROW_NUMBER() OVER(PARTITION BY user_id ORDER BY login_date) DAY) grp FROM logins) g GROUP BY user_id,grp HAVING COUNT(*)>=3;',TRUE);
 
--- Sample coding questions for MySQL
-INSERT INTO questions (
-    title,
-    description,
-    programming_language_id,
-    question_type,
-    difficulty,
-    starter_code,
-    ai_solution_required,
-    correct_answer
-)
+INSERT INTO questions(title,description,programming_language_id,question_type,difficulty,correct_answer)
 VALUES
-    (
-        'Select All Employees',
-        'Write a query to select all employees ordered by their salary in descending order. Return the employee name and salary.',
-        3, -- MySQL
-        'CODING',
-        'EASY',
-        '/* Write your MySQL query statement below */
--- Given table:
--- employees (id, name, salary)
-SELECT name, salary FROM employees ORDER BY salary DESC;',
-        true,
-        NULL
-    ),
-    (
-        'Department Averages',
-        'Write a query to find the average salary for each department. Return the department name and the average salary, ordered by average salary descending.',
-        3, -- MySQL
-        'CODING',
-        'MEDIUM',
-        '/* Write your MySQL query statement below */
--- Given tables:
--- employees (id, name, salary, department_id)
--- departments (id, name)
-SELECT d.name AS department_name, AVG(e.salary) AS average_salary
-FROM employees e
-JOIN departments d ON e.department_id = d.id
-GROUP BY d.name
-ORDER BY average_salary DESC;',
-        true,
-        NULL
-    ),
-    (
-        'Active Users',
-        'Write a query to find users who logged in for 3 or more consecutive days. Return the user_id and the start date of their streak.',
-        3, -- MySQL
-        'CODING',
-        'HARD',
-        '/* Write your MySQL query statement below */
--- Given table:
--- logins (user_id, login_date)
-SELECT user_id, MIN(login_date) AS streak_start
-FROM (
-    SELECT user_id, login_date,
-           DATE_SUB(login_date, INTERVAL ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_date) DAY) AS grp
-    FROM logins
-) AS grouped
-GROUP BY user_id, grp
-HAVING COUNT(*) >= 3;',
-        true,
-        NULL
-    );
+('DISTINCT Keyword','Remove duplicate rows?',3,'LOGIC','EASY','DISTINCT'),
+('SQL Wildcard','Wildcard in LIKE?',3,'LOGIC','EASY','%');
 
--- Logic questions for MySQL
-INSERT INTO questions (
-    title,
-    description,
-    programming_language_id,
-    question_type,
-    difficulty,
-    starter_code,
-    ai_solution_required,
-    correct_answer
-)
-VALUES
-    (
-        'Remove Duplicate Rows',
-        'Which SQL keyword is used to remove duplicate rows from the results of a SELECT query?',
-        3, -- MySQL
-        'LOGIC',
-        'EASY',
-        NULL,
-        false,
-        'DISTINCT'
-    ),
-    (
-        'Wildcard in SQL LIKE Clause',
-        'In SQL, what symbol is used as a wildcard in the LIKE clause to match any sequence of characters?',
-        3, -- MySQL
-        'LOGIC',
-        'EASY',
-        NULL,
-        false,
-        '%'
-    );
+INSERT INTO users(username,email,password,role,provider)
+VALUES('admin','admin@codeify.com','<initial_hashed_password>','admin','local');
+
+CALL cleanup_expired_tokens();

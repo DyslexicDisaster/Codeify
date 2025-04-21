@@ -1,22 +1,22 @@
 package codeify.controllers.auth;
 
+import codeify.dtos.RegisterRequest;
 import codeify.dtos.UserDto;
 import codeify.entities.User;
 import codeify.entities.role;
 import codeify.persistance.implementations.UserRepositoryImpl;
 import codeify.service.implementations.PasswordResetService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import jakarta.servlet.http.HttpServletResponse;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.sql.SQLException;
@@ -24,6 +24,15 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+/**
+ * RESOURCES:
+ * https://www.baeldung.com/spring-boot-bean-validation
+ * https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#boot-features-validation
+ * https://docs.spring.io/spring-framework/reference/core/validation/beanvalidation.html#validation-beanvalidation-spring
+ * https://www.geeksforgeeks.org/hibernate-validator-with-example/
+ */
 
 @Slf4j
 @RestController
@@ -40,7 +49,7 @@ public class AuthenticationController {
     public ResponseEntity<?> loginUser(
             @RequestParam String username,
             @RequestParam String password,
-            HttpServletResponse response) {  // Note: using jakarta.servlet.http.HttpServletResponse
+            HttpServletResponse response) {
         log.info("Received login request for user: {}", username);
         try {
             String token = userRepository.login(username, password);
@@ -51,8 +60,6 @@ public class AuthenticationController {
                 responseBody.put("token", token);
                 responseBody.put("username", username);
                 responseBody.put("role", userRepository.findByUsername(username).get().getRole().toString());
-
-                // Set JWT as HttpOnly cookie using Lax for local testing
                 response.addHeader("Set-Cookie", "jwtToken=" + token + "; Path=/;SameSite=Lax");
 
                 return ResponseEntity.ok(responseBody);
@@ -67,13 +74,10 @@ public class AuthenticationController {
         }
     }
 
-    // Spring controller
     @GetMapping("/me")
     public ResponseEntity<UserDto> getCurrentUser(Authentication authentication) throws SQLException {
         String principal = authentication.getName();
         log.debug("[AuthController] /me called, principal = {}", principal);
-
-        // try lookup by username, then by email
         Optional<User> userOpt = userRepository.findByUsername(principal);
         if (userOpt.isEmpty()) {
             userOpt = userRepository.findByEmail(principal);
@@ -81,44 +85,57 @@ public class AuthenticationController {
 
         User user = userOpt
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + principal));
-
-        // always return the username (never the email)
         UserDto dto = new UserDto(user.getUsername(), user.getRole().name());
         return ResponseEntity.ok(dto);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestParam String username, @RequestParam String password, @RequestParam String email) {
-        log.info("Received registration request for username: {}", username);
+    public ResponseEntity<?> registerUser(
+            @Valid @RequestBody RegisterRequest req,
+            BindingResult br
+    ) {
+        if (br.hasErrors()) {
+            Map<String,String> errs = br.getFieldErrors().stream()
+                    .collect(Collectors.toMap(
+                            fe -> fe.getField(),
+                            fe -> fe.getDefaultMessage()
+                    ));
+            return ResponseEntity.badRequest().body(errs);
+        }
+
         try {
-            if (userRepository.existsByUsername(username)) {
-                log.warn("Registration failed: Username {} already exists", username);
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists");
+            if (userRepository.existsByUsername(req.getUsername())) {
+                return ResponseEntity
+                        .status(HttpStatus.CONFLICT)
+                        .body(Map.of("username", "Username already exists"));
             }
-            if (userRepository.existsByEmail(email)) {
-                log.warn("Registration failed: Email {} already exists", email);
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already exists");
+            if (userRepository.existsByEmail(req.getEmail())) {
+                return ResponseEntity
+                        .status(HttpStatus.CONFLICT)
+                        .body(Map.of("email", "Email already exists"));
             }
 
-            LocalDate registrationDate = LocalDate.now();
-            role defaultRole = role.user;
-
-            User newUser = new User(username, password, email, registrationDate, defaultRole, "local");
-            boolean registered = userRepository.register(newUser);
-
-            if (registered) {
-                log.info("User {} registered successfully", username);
-                return ResponseEntity.ok("User registered successfully");
-            } else {
-                log.error("Registration failed for user: {}", username);
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Registration failed");
+            User u = new User(
+                    req.getUsername(),
+                    req.getPassword(),
+                    req.getEmail(),
+                    LocalDate.now(),
+                    role.user,
+                    "local"
+            );
+            boolean ok = userRepository.register(u);
+            if (!ok) {
+                return ResponseEntity
+                        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Registration failed");
             }
+            return ResponseEntity.ok("User registered successfully");
+
         } catch (SQLException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-            log.error("Error during registration for user {}: {}", username, e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
-        } catch (Exception e) {
-            log.error("Unexpected error during registration for user {}: {}", username, e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error: " + e.getMessage());
+            log.error("Registration error for {}: {}", req.getUsername(), e.getMessage());
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getMessage());
         }
     }
 

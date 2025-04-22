@@ -20,6 +20,13 @@ public class QuestionRepositoryImpl implements QuestionRepository {
     @Autowired
     private DataSource dataSource;
 
+    /**
+     * Retrieves a list of questions based on the specified programming language ID.
+     *
+     * @param languageId The ID of the programming language.
+     * @return A list of questions associated with the specified programming language.
+     * @throws SQLException If an SQL error occurs during the operation.
+     */
     @Override
     public List<Question> getQuestionByLanguage(int languageId) throws SQLException {
         List<Question> questionList = new ArrayList<>();
@@ -41,7 +48,6 @@ public class QuestionRepositoryImpl implements QuestionRepository {
                     programmingLanguage.setId(resultSet.getInt("programming_language_id"));
                     question.setProgrammingLanguage(programmingLanguage);
 
-                    // Sets enums
                     question.setQuestionType(Question.QuestionType.valueOf(resultSet.getString("question_type")));
                     question.setDifficulty(Question.Difficulty.valueOf(resultSet.getString("difficulty")));
 
@@ -57,6 +63,13 @@ public class QuestionRepositoryImpl implements QuestionRepository {
         return questionList;
     }
 
+    /**
+     * Retrieves a question by its ID.
+     *
+     * @param questionId The ID of the question to retrieve.
+     * @return The question with the specified ID, or null if not found.
+     * @throws SQLException If an SQL error occurs during the operation.
+     */
     @Override
     public Question getQuestionById(int questionId) throws SQLException {
         String query = "SELECT q.*, pl.name as language_name FROM questions q JOIN programming_languages pl ON q.programming_language_id = pl.id WHERE q.id = ?";
@@ -78,7 +91,6 @@ public class QuestionRepositoryImpl implements QuestionRepository {
                     programmingLanguage.setName(resultSet.getString("language_name"));
                     question.setProgrammingLanguage(programmingLanguage);
 
-                    // Sets enums
                     question.setQuestionType(Question.QuestionType.valueOf(resultSet.getString("question_type")));
                     question.setDifficulty(Question.Difficulty.valueOf(resultSet.getString("difficulty")));
 
@@ -94,6 +106,13 @@ public class QuestionRepositoryImpl implements QuestionRepository {
         return null;
     }
 
+    /**
+     * Adds a new question to the database.
+     *
+     * @param question The question to add.
+     * @return true if the question was added successfully, false otherwise.
+     * @throws SQLException If an SQL error occurs during the operation.
+     */
     @Override
     public boolean addQuestion(Question question) throws SQLException {
         String query = "INSERT INTO questions (title, description, programming_language_id, question_type, difficulty, starter_code, ai_solution_required, correct_answer) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -113,6 +132,13 @@ public class QuestionRepositoryImpl implements QuestionRepository {
         }
     }
 
+    /**
+     * Updates an existing question in the database.
+     *
+     * @param question The question to update.
+     * @return true if the question was updated successfully, false otherwise.
+     * @throws SQLException If an SQL error occurs during the operation.
+     */
     @Override
     public boolean updateQuestion(Question question) throws SQLException {
         String query = "UPDATE questions SET title = ?, description = ?, programming_language_id = ?, question_type = ?, difficulty = ?, starter_code = ?, ai_solution_required = ?, correct_answer = ? WHERE id = ?";
@@ -133,6 +159,13 @@ public class QuestionRepositoryImpl implements QuestionRepository {
         }
     }
 
+    /**
+     * Deletes a question from the database.
+     *
+     * @param questionId The ID of the question to delete.
+     * @return true if the question was deleted successfully, false otherwise.
+     * @throws SQLException If an SQL error occurs during the operation.
+     */
     @Override
     public boolean deleteQuestion(int questionId) throws SQLException {
         String query = "DELETE FROM questions WHERE id = ?";
@@ -143,6 +176,12 @@ public class QuestionRepositoryImpl implements QuestionRepository {
         }
     }
 
+    /**
+     * Retrieves a list of all questions from the database.
+     *
+     * @return A list of all questions.
+     * @throws SQLException If an SQL error occurs during the operation.
+     */
     @Override
     public List<Question> getQuestions() throws SQLException {
         List<Question> questionList = new ArrayList<>();

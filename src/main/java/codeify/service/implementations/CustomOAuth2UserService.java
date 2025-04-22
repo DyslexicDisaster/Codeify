@@ -20,6 +20,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Resources: https://github.com/callicoder/spring-boot-react-oauth2-social-login-demo
+ */
 @Service
 public class CustomOAuth2UserService
         implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {

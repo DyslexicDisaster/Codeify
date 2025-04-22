@@ -17,6 +17,12 @@ public class UserConfig {
         this.userRepository = userRepository;
     }
 
+    /**
+     * This method configures the UserDetailsService bean, which is used by Spring Security
+     * to load user-specific data. It retrieves user details based on the username or email.
+     *
+     * @return a UserDetailsService instance
+     */
     @Bean
     public UserDetailsService userDetailsService() {
         return principal -> {

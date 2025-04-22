@@ -24,6 +24,14 @@ public class LastAttemptRepositoryImpl implements LastAttemptRepository {
     @Autowired
     private QuestionRepositoryImpl questionRepository;
 
+    /**
+     * Finds the last attempt of a user for a specific question.
+     *
+     * @param userId the ID of the user
+     * @param questionId the ID of the question
+     * @return an Optional containing the LastAttempt if found, otherwise empty
+     * @throws SQLException if a database access error occurs
+     */
     @Override
     public Optional<LastAttempt> findByUserIdAndQuestionId(int userId, int questionId) throws SQLException {
         String query = "SELECT * FROM last_attempts WHERE user_id = ? AND question_id = ?";
@@ -65,6 +73,14 @@ public class LastAttemptRepositoryImpl implements LastAttemptRepository {
         return Optional.empty();
     }
 
+    /**
+     * Saves the last attempt of a user for a specific question.
+     * If an attempt already exists, it updates the existing record.
+     *
+     * @param lastAttempt the LastAttempt object to save
+     * @return true if the operation was successful, false otherwise
+     * @throws SQLException if a database access error occurs
+     */
     @Override
     public boolean saveLastAttempt(LastAttempt lastAttempt) throws SQLException {
         Optional<LastAttempt> existingAttempt = findByUserIdAndQuestionId(

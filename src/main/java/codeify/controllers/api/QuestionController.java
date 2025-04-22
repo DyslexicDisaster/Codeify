@@ -61,6 +61,12 @@ public class QuestionController {
         }
     }
 
+    /**
+     * Retrieves a question by its ID.
+     *
+     * @param questionId the ID of the question
+     * @return a ResponseEntity containing the question or an error message
+     */
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/question/{id}")
     public ResponseEntity<?> getQuestionById(@PathVariable("id") Integer questionId) {
@@ -79,7 +85,10 @@ public class QuestionController {
     }
 
     /**
-     * Get the last attempt for a question by the current user
+     * Retrieves the last attempt of a user for a specific question.
+     *
+     * @param questionId the ID of the question
+     * @return a ResponseEntity containing the last attempt code or an error message
      */
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/last-attempt/{questionId}")

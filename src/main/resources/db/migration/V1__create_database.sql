@@ -140,6 +140,9 @@ BEGIN
 END$$
 DELIMITER ;
 
+INSERT INTO users (username, email, role, registration_date, password, provider)
+VALUES ('Admin User',NULL,'admin',NOW(),'psjc5uxuRS/ouOgQt3nDsw==:pqsepeuu73b1Fiqe37ofWLgBHxbV3qUp/nr7hGGjw0vQoj7KCzsqDotIpEMFex+xj7wG1ePe2776sBPB/QW87Q==','local') ON DUPLICATE KEY UPDATE username = VALUES(username);
+
 INSERT INTO programming_languages(name) VALUES('Java'),('JavaScript'),('MySQL');
 
 INSERT INTO questions(title,description,programming_language_id,question_type,difficulty,starter_code,ai_solution_required)

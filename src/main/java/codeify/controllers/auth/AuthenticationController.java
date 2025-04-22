@@ -45,6 +45,11 @@ public class AuthenticationController {
     @Autowired
     private PasswordResetService passwordResetService;
 
+    /*
+     * This endpoint is used to log in a user.
+     * It checks the username and password against the database.
+     * If they match, it generates a JWT token and returns it in the response.
+     */
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(
             @RequestParam String username,
@@ -74,6 +79,10 @@ public class AuthenticationController {
         }
     }
 
+    /*
+     * This endpoint is used to get the current user's information.
+     * It retrieves the username from the authentication object and fetches the user details from the database.
+     */
     @GetMapping("/me")
     public ResponseEntity<UserDto> getCurrentUser(Authentication authentication) throws SQLException {
         String principal = authentication.getName();
@@ -89,6 +98,11 @@ public class AuthenticationController {
         return ResponseEntity.ok(dto);
     }
 
+    /*
+     * This endpoint is used to register a new user.
+     * It checks if the username and email already exist in the database.
+     * If they do not exist, it creates a new user and saves it to the database.
+     */
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(
             @Valid @RequestBody RegisterRequest req,
@@ -139,6 +153,10 @@ public class AuthenticationController {
         }
     }
 
+    /*
+     * This endpoint is used to check if a username already exists in the database.
+     * It returns a boolean value indicating whether the username exists or not.
+     */
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(
             @RequestParam("email") String email,
@@ -160,6 +178,11 @@ public class AuthenticationController {
                     .body("Error: " + e.getMessage());
         }
     }
+
+    /*
+     * This endpoint is used to reset the password using a token.
+     * It verifies the token and updates the user's password in the database.
+     */
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestParam String token, @RequestParam String newPassword) {
         log.info("Received password reset request with token: {}", token);

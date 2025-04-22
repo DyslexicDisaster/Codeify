@@ -25,6 +25,13 @@ public class UserRepositoryImpl implements UserRepository {
     @Autowired
     private DataSource dataSource;
 
+    //TESTED
+    /*
+     * Updates the password of a user in the database.
+     *
+     * @param id  ID of the user
+     * @param pwd New password for the user
+     */
     @Override
     public void updatePassword(int id, String pwd) {
         String sql = "UPDATE users SET password = ? WHERE user_id = ?";
@@ -39,6 +46,14 @@ public class UserRepositoryImpl implements UserRepository {
         }
     }
 
+    //TESTED
+    /*
+     * Saves a new user to the database.
+     *
+     * @param user User object to be saved
+     * @return Saved user object with generated ID
+     * @throws SQLException If a database access error occurs
+     */
     @Override
     public User save(User user) throws SQLException {
         String sql = """

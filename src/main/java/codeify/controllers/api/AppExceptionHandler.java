@@ -3,6 +3,7 @@ package codeify.controllers.api;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.ModelAndView;
 
 /**
  * A centralized exception handler for the Codeify application.
@@ -25,14 +26,14 @@ public class AppExceptionHandler {
     /**
      * Handles all other exceptions that are not explicitly caught by more specific handlers.
      *
-     * @param model the Model object used to pass error details to the view.
      * @param ex    the exception object that was thrown.
      * @return the name of the error view template to display.
      */
-    @ExceptionHandler(value = Exception.class)
-    public String allOtherExceptionHandler(Model model, Exception ex){
-        model.addAttribute("errType", ex.getClass());
-        model.addAttribute("errMsg", ex.getMessage());
-        return "error";
+    @ExceptionHandler(Exception.class)
+    public ModelAndView handleError(Exception ex) {
+        ModelAndView model = new ModelAndView("error");
+        model.addObject("err", ex.getClass().getSimpleName());
+        model.addObject("message", ex.getMessage());
+        return model;
     }
 }

@@ -22,10 +22,8 @@ public class ProgrammingLanguageRepositoryImpl implements ProgrammingLanguageRep
     @Override
     public List<ProgrammingLanguage> getAllProgrammingLanguage() throws SQLException {
 
-        // Empty list of languages
         List<ProgrammingLanguage> languageList = new ArrayList<>();
 
-        // Query waiting for being executed
         String query = "SELECT * FROM programming_languages ORDER BY name";
 
 

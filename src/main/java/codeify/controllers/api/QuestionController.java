@@ -121,7 +121,6 @@ public class QuestionController {
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/grade")
     public ResponseEntity<?> gradeAnswer(@RequestBody GradeRequest gradeRequest) {
-        // Retrieve the logged-in user from the SecurityContext
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not logged in");
@@ -134,16 +133,14 @@ public class QuestionController {
                 return ResponseEntity.badRequest().body("Question ID cannot be null");
             }
 
-            // Save the user's last attempt
             lastAttemptService.saveLastAttempt(user.getUserId(), gradeRequest.getQuestionId(), gradeRequest.getAnswer());
 
-            // Retrieve the question from the database.
+
             Question question = questionRepositoryImpl.getQuestionById(gradeRequest.getQuestionId());
             if (question == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Question not found");
             }
 
-            // Evaluate the answer using the AI service.
             Map<String, String> evaluationResult = aiEvaluationService.evaluateAnswer(question, gradeRequest.getAnswer());
             int grade;
             try {
@@ -154,12 +151,11 @@ public class QuestionController {
 
             userProgressRepository.updateUserProgress(user.getUserId(), gradeRequest.getQuestionId(), grade);
 
-            // Get the current status
+
             UserProgress.ProgressStatus status = grade >= 70 ?
                     UserProgress.ProgressStatus.COMPLETED :
                     UserProgress.ProgressStatus.IN_PROGRESS;
 
-            // Build the JSON response.
             Map<String, Object> response = new HashMap<>();
             response.put("grade", grade);
             response.put("feedback", evaluationResult.get("feedback"));
@@ -176,14 +172,10 @@ public class QuestionController {
         }
     }
 
-    /**
-     * Get user progress for a specific programming language
-     * This endpoint was missing or incomplete
-     */
+
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/progress")
     public ResponseEntity<?> getUserProgress(@RequestParam(required = true) Integer languageId) {
-        // Get the current user from the security context
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not logged in");

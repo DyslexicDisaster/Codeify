@@ -13,17 +13,30 @@ import java.util.Optional;
 @Repository
 public interface UserRepository {
     void updatePassword(int id, String pwd);
+
     User save(User user) throws SQLException;
+
     boolean register(User user) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException;
+
     boolean existsByEmail(String email) throws SQLException;
+
     boolean existsByUsername(String username) throws SQLException;
+
     String login(String username, String password) throws SQLException;
+
     Optional<User> findByEmail(String email) throws SQLException;
+
     Optional<User> findByUsername(String username) throws SQLException;
+
     List<User> getAllUsers() throws SQLException;
+
     Optional<User> getUserById(int userId) throws SQLException;
+
     boolean deleteUserById(int userId) throws SQLException;
+
     boolean updateUser(User user) throws SQLException;
+
     boolean changeRole(int id, role role) throws SQLException;
+
     boolean resetPassword(int id, String hashedPassword) throws SQLException;
 }

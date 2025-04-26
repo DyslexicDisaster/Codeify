@@ -6,21 +6,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-/**
- * A wrapper for {@link ClientHttpResponse} that buffers the response body.
- * This is useful when you need to read the response body multiple times.
- */
 public class BufferingClientHttpResponseWrapper implements ClientHttpResponse {
 
     private final ClientHttpResponse delegate;
     private final byte[] body;
 
-    /**
-     * Constructs a new BufferingClientHttpResponseWrapper.
-     *
-     * @param delegate the original ClientHttpResponse
-     * @param body     the buffered response body
-     */
     public BufferingClientHttpResponseWrapper(ClientHttpResponse delegate, byte[] body) {
         this.delegate = delegate;
         this.body     = body;

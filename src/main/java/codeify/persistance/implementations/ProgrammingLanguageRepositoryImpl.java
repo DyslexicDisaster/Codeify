@@ -19,12 +19,6 @@ public class ProgrammingLanguageRepositoryImpl implements ProgrammingLanguageRep
     @Autowired
     private DataSource dataSource;
 
-    /**
-     * Method to get all programming languages from the database
-     *
-     * @return List<ProgrammingLanguage> - List of programming languages
-     * @throws SQLException - If there is an error in the SQL query
-     */
     @Override
     public List<ProgrammingLanguage> getAllProgrammingLanguage() throws SQLException {
 
@@ -53,13 +47,6 @@ public class ProgrammingLanguageRepositoryImpl implements ProgrammingLanguageRep
         return languageList;
     }
 
-    /**
-     * Method to get a programming language by its ID
-     *
-     * @param languageId - ID of the programming language
-     * @return ProgrammingLanguage - Programming language object
-     * @throws SQLException - If there is an error in the SQL query
-     */
     @Override
     public ProgrammingLanguage getProgrammingLanguageById(int languageId) throws SQLException {
         String query = "SELECT * FROM programming_languages WHERE id = ?";
@@ -78,13 +65,6 @@ public class ProgrammingLanguageRepositoryImpl implements ProgrammingLanguageRep
         return null;
     }
 
-    /**
-     * Method to add a programming language to the database
-     *
-     * @param language - Programming language object
-     * @return boolean - true if the language was added successfully, false otherwise
-     * @throws SQLException - If there is an error in the SQL query
-     */
     @Override
     public boolean addProgrammingLanguage(ProgrammingLanguage language) throws SQLException {
         String query = "INSERT INTO programming_languages (name) VALUES (?)";
@@ -95,13 +75,6 @@ public class ProgrammingLanguageRepositoryImpl implements ProgrammingLanguageRep
         }
     }
 
-    /**
-     * Method to update a programming language in the database
-     *
-     * @param language ProgrammingLanguage to be updated
-     * @return true if the update was successful, false otherwise
-     * @throws SQLException if there is an error in the SQL query
-     */
     @Override
     public boolean updateProgrammingLanguage(ProgrammingLanguage language) throws SQLException {
         String query = "UPDATE programming_languages SET name = ? WHERE id = ?";
@@ -113,13 +86,6 @@ public class ProgrammingLanguageRepositoryImpl implements ProgrammingLanguageRep
         }
     }
 
-    /**
-     * Method to delete a programming language from the database
-     *
-     * @param languageId ID of the programming language to be deleted
-     * @return true if the deletion was successful, false otherwise
-     * @throws SQLException if there is an error in the SQL query
-     */
     @Override
     public boolean deleteProgrammingLanguageById(int languageId) throws SQLException {
         String query = "DELETE FROM programming_languages WHERE id = ?";

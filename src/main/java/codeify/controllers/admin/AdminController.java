@@ -10,7 +10,6 @@ import codeify.util.passwordHash;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,11 +31,7 @@ public class AdminController {
     @Autowired
     private ProgrammingLanguageRepositoryImpl programmingLanguageRepositoryImpl;
 
-    /**
-     * Get all users
-     * @return List of users
-     */
-    @PreAuthorize("hasRole('admin')")
+    // Get all users
     @GetMapping("/get_all_users")
     public ResponseEntity<?> getAllUsers() {
         try{
@@ -47,12 +42,7 @@ public class AdminController {
         }
     }
 
-    /*
-     * Get user by ID
-     * @param id User ID
-     * @return User object
-     */
-    @PreAuthorize("hasRole('admin')")
+    // Add user
     @PostMapping("/add_user")
     public ResponseEntity<String> addUser(@RequestBody User user) {
         try{
@@ -67,12 +57,7 @@ public class AdminController {
         }
     }
 
-    /*
-     * Get user by ID
-     * @param id User ID
-     * @return User object
-     */
-    @PreAuthorize("hasRole('admin')")
+    // Delete user
     @DeleteMapping("/delete_user/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable int id) {
         try{
@@ -87,12 +72,6 @@ public class AdminController {
         }
     }
 
-    /*
-     * Update user
-     * @param updatedUser User object with updated information
-     * @return Response message
-     */
-    @PreAuthorize("hasRole('admin')")
     @PutMapping("/update_user")
     public ResponseEntity<String> updateUser(@RequestBody User updatedUser) {
         try {
@@ -124,13 +103,7 @@ public class AdminController {
         }
     }
 
-    /*
-     * Change user role
-     * @param id User ID
-     * @param role New role
-     * @return Response message
-     */
-    @PreAuthorize("hasRole('admin')")
+    // Change user role
     @PutMapping("/change_role/{id}")
     public ResponseEntity<String> changeRole(@PathVariable int id, @RequestParam String role) {
         try{
@@ -145,13 +118,7 @@ public class AdminController {
         }
     }
 
-    /*
-     * Reset user password
-     * @param id User ID
-     * @param password New password
-     * @return Response message
-     */
-    @PreAuthorize("hasRole('admin')")
+    // Reset user password
     @PutMapping("/reset_password/{id}")
     public ResponseEntity<String> resetPassword(@PathVariable int id, @RequestParam String password) {
         try{
@@ -168,11 +135,7 @@ public class AdminController {
         }
     }
 
-    /*
-     * Get all questions
-     * @return List of questions
-     */
-    @PreAuthorize("hasRole('admin')")
+    // Get all questions
     @GetMapping("/get_all_questions")
     public ResponseEntity<?> getAllQuestions() {
         try {
@@ -183,12 +146,7 @@ public class AdminController {
         }
     }
 
-    /*
-     * Get question by ID
-     * @param id Question ID
-     * @return Question object
-     */
-    @PreAuthorize("hasRole('admin')")
+    // Get question by ID
     @GetMapping("/question/{id}")
     public ResponseEntity<?> getQuestionById(@PathVariable int id) {
         try {
@@ -203,12 +161,7 @@ public class AdminController {
         }
     }
 
-    /*
-     * Get questions by language ID
-     * @param languageId Language ID
-     * @return List of questions
-     */
-    @PreAuthorize("hasRole('admin')")
+    // Get questions by programming language
     @GetMapping("/questions/language/{languageId}")
     public ResponseEntity<?> getQuestionsByLanguage(@PathVariable int languageId) {
         try {
@@ -219,12 +172,7 @@ public class AdminController {
         }
     }
 
-    /*
-     * Add a new question
-     * @param question Question object
-     * @return Response message
-     */
-    @PreAuthorize("hasRole('admin')")
+    // Add question
     @PostMapping("/add_question")
     public ResponseEntity<String> addQuestion(@RequestBody Question question) {
         try {
@@ -239,12 +187,7 @@ public class AdminController {
         }
     }
 
-    /*
-     * Update a question
-     * @param question Question object with updated information
-     * @return Response message
-     */
-    @PreAuthorize("hasRole('admin')")
+    // Update question
     @PutMapping("/update_question")
     public ResponseEntity<String> updateQuestion(@RequestBody Question question) {
         try {
@@ -259,12 +202,7 @@ public class AdminController {
         }
     }
 
-    /*
-     * Delete a question
-     * @param id Question ID
-     * @return Response message
-     */
-    @PreAuthorize("hasRole('admin')")
+    // Delete a question
     @DeleteMapping("/delete_question/{id}")
     public ResponseEntity<String> deleteQuestion(@PathVariable int id) {
         try {
@@ -279,11 +217,6 @@ public class AdminController {
         }
     }
 
-    /*
-     * Get all programming languages
-     * @return List of programming languages
-     */
-    @PreAuthorize("hasRole('admin')")
     @GetMapping("/programming_languages")
     public ResponseEntity<?> getAllProgrammingLanguages() {
         try {
@@ -295,12 +228,6 @@ public class AdminController {
         }
     }
 
-    /*
-     * Get programming language by ID
-     * @param id Programming language ID
-     * @return Programming language object
-     */
-    @PreAuthorize("hasRole('admin')")
     @GetMapping("/programming_language/{id}")
     public ResponseEntity<?> getProgrammingLanguageById(@PathVariable int id) {
         try {
@@ -316,12 +243,6 @@ public class AdminController {
         }
     }
 
-    /*
-     * Add a new programming language
-     * @param language Programming language object
-     * @return Response message
-     */
-    @PreAuthorize("hasRole('admin')")
     @PostMapping("/add_programming_language")
     public ResponseEntity<String> addProgrammingLanguage(@RequestBody ProgrammingLanguage language) {
         try {
@@ -337,12 +258,6 @@ public class AdminController {
         }
     }
 
-    /*
-     * Delete a programming language
-     * @param id Programming language ID
-     * @return Response message
-     */
-    @PreAuthorize("hasRole('admin')")
     @PutMapping("/update_programming_language")
     public ResponseEntity<String> updateProgrammingLanguage(@RequestBody ProgrammingLanguage language) {
         try {
@@ -358,12 +273,6 @@ public class AdminController {
         }
     }
 
-    /*
-     * Delete a programming language
-     * @param id Programming language ID
-     * @return Response message
-     */
-    @PreAuthorize("hasRole('admin')")
     @DeleteMapping("/delete_programming_language/{id}")
     public ResponseEntity<String> deleteProgrammingLanguage(@PathVariable int id) {
         try {

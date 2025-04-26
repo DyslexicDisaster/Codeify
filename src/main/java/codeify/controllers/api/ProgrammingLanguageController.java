@@ -71,4 +71,58 @@ public class ProgrammingLanguageController {
             return ResponseEntity.status(500).body("Error retrieving language: " + e.getMessage());
         }
     }
+
+    @PreAuthorize("hasRole('admin')")
+    @PostMapping("/add")
+    public ResponseEntity<?> addLanguage(@RequestBody ProgrammingLanguage language){
+        try{
+            boolean success = programmingLanguageRepositoryImpl.addProgrammingLanguage(language);
+
+            if (!success) {
+                return ResponseEntity.status(500).body("Adding language has failed.");
+            }
+
+            return ResponseEntity.ok("Language has been added successfully.");
+        } catch (SQLException e) {
+            return ResponseEntity.status(500).body("Error adding language: " + e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(500).body("Error adding language: " + e.getMessage());
+        }
+    }
+
+    @PreAuthorize("hasRole('admin')")
+    @PutMapping("/update")
+    public ResponseEntity<?> updateLanguage(@RequestBody ProgrammingLanguage language){
+        try{
+            boolean success = programmingLanguageRepositoryImpl.updateProgrammingLanguage(language);
+
+            if (!success) {
+                return ResponseEntity.status(500).body("Updating language has failed.");
+            }
+
+            return ResponseEntity.ok("Language has been updated successfully.");
+        } catch (SQLException e) {
+            return ResponseEntity.status(500).body("Error updating language: " + e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(500).body("Error updating language: " + e.getMessage());
+        }
+    }
+
+    @PreAuthorize("hasRole('admin')")
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> deleteLanguageById(@RequestParam int id){
+        try{
+            boolean success = programmingLanguageRepositoryImpl.deleteProgrammingLanguageById(id);
+
+            if (!success) {
+                return ResponseEntity.status(500).body("Deleting language has failed.");
+            }
+
+            return ResponseEntity.ok("Language has been deleted successfully.");
+        } catch (SQLException e) {
+            return ResponseEntity.status(500).body("Error deleting language: " + e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(500).body("Error deleting language: " + e.getMessage());
+        }
+    }
 }

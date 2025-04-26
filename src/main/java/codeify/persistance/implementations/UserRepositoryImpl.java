@@ -88,13 +88,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     /**
-     * Registers a new user in the database.
-     *
-     * @param user User object containing user details
-     * @return true if registration is successful, false otherwise
-     * @throws SQLException If a database access error occurs
-     * @throws NoSuchAlgorithmException No such algorithm exception
-     * @throws InvalidKeySpecException Invalid key specification exception
+     * Registers a new user with the given details.
      */
     @Override
     public boolean register(User user) throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {

@@ -29,9 +29,6 @@ import java.time.LocalDateTime;
 import java.util.Scanner;
 import java.util.UUID;
 
-/*
- * Resources: https://www.youtube.com/watch?v=mxs_00KpUE4
- */
 @Service
 @Transactional
 public class PasswordResetService {
@@ -50,13 +47,6 @@ public class PasswordResetService {
     @Value("classpath:email.html")
     private Resource emailTemplate;
 
-    /**
-     * Creates a password reset token and sends an email to the user.
-     *
-     * @param email   The email address of the user
-     * @param appUrl  The application URL
-     * @throws SQLException if a database error occurs
-     */
     public void createPasswordResetToken(String email, String appUrl) throws SQLException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("No user with email " + email));
@@ -77,11 +67,6 @@ public class PasswordResetService {
         sendHtmlEmail(user.getEmail(), "Password Reset Request", body);
     }
 
-    /**
-     * Loads the email template from the classpath.
-     *
-     * @return The email template as a string
-     */
     private String loadTemplate() {
         try (InputStream in = emailTemplate.getInputStream();
              Scanner sc = new Scanner(in, StandardCharsets.UTF_8.name())) {
@@ -92,13 +77,6 @@ public class PasswordResetService {
         }
     }
 
-    /**
-     * Sends an HTML email.
-     *
-     * @param to        The recipient's email address
-     * @param subject   The subject of the email
-     * @param htmlBody  The HTML body of the email
-     */
     private void sendHtmlEmail(String to, String subject, String htmlBody) {
         MimeMessage msg = mailSender.createMimeMessage();
         try {
@@ -112,13 +90,6 @@ public class PasswordResetService {
         }
     }
 
-    /**
-     * Resets the user's password using the provided token and new password.
-     *
-     * @param token       The password reset token
-     * @param newPassword The new password
-     * @throws SQLException if a database error occurs
-     */
     public void resetPassword(String token, String newPassword)
             throws SQLException, NoSuchAlgorithmException, InvalidKeySpecException {
 

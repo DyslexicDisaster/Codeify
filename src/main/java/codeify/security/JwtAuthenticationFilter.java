@@ -27,11 +27,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
     }
 
-    /**
-     * This method is used to check if the filter should be applied to the request.
-     * If the request is for login, register, forgot password, reset password,
-     * or any other public endpoint, the filter will not be applied.
-     */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
@@ -47,10 +42,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return false;
     }
 
-    /**
-     * This method is used to filter the request and check if the JWT token is valid.
-     * If the token is valid, the user details are loaded and set in the security context.
-     */
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -72,10 +63,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    /**
-     * This method is used to get the JWT token from the request.
-     * It checks the cookies and the Authorization header for the token.
-     */
     private String getJwtFromRequest(HttpServletRequest request) {
         if (request.getCookies() != null) {
             for (Cookie c : request.getCookies()) {

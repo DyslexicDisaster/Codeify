@@ -17,14 +17,6 @@ import java.io.IOException;
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private static final Logger logger = LoggerFactory.getLogger(OAuth2SuccessHandler.class);
 
-    /**
-     * This method is called when the user successfully authenticates with OAuth2.
-     *
-     * @param req  Request that was made to the server.
-     * @param res Response to send to the client.
-     * @param auth Authentication object containing the user's details.
-     * @throws IOException If an I/O error occurs during the redirect.
-     */
     @Override
     public void onAuthenticationSuccess(
             HttpServletRequest req,

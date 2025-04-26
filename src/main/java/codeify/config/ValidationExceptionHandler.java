@@ -11,12 +11,6 @@ import java.util.stream.Collectors;
 @ControllerAdvice
 public class ValidationExceptionHandler {
 
-    /**
-     * Handles validation exceptions thrown by the application.
-     *
-     * @param ex the MethodArgumentNotValidException
-     * @return a ResponseEntity containing a map of field errors
-     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String,String>> handleValidation(
             MethodArgumentNotValidException ex

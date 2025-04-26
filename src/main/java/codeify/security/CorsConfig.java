@@ -7,13 +7,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class CorsConfig {
-
-    /**
-     * Configures CORS settings for the application.
-     * Allows requests from http://localhost:3000 with specified methods and headers.
-     *
-     * @return a WebMvcConfigurer instance with CORS configuration
-     */
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {

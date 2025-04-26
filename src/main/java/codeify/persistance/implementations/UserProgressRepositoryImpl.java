@@ -16,6 +16,9 @@ import java.util.Map;
 public class UserProgressRepositoryImpl {
 
     @Autowired
+    private QuestionRepositoryImpl questionRepositoryImpl;
+
+    @Autowired
     private DataSource dataSource;
 
     /**
@@ -30,33 +33,53 @@ public class UserProgressRepositoryImpl {
      * @throws SQLException if a database error occurs.
      */
     public boolean updateUserProgress(int userId, int questionId, int grade) throws SQLException {
+        Question question = questionRepositoryImpl.getQuestionById(questionId);
+        if (question == null) {
+            throw new SQLException("Question not found");
+        }
+
+        int programmingLanguageId = question.getProgrammingLanguage().getId();
+
         try (Connection connection = dataSource.getConnection()) {
-            // Check if a record exists for the given user_id and question_id.
             String checkQuery = "SELECT id FROM user_progress WHERE user_id = ? AND question_id = ?";
             try (PreparedStatement statement = connection.prepareStatement(checkQuery)) {
                 statement.setInt(1, userId);
                 statement.setInt(2, questionId);
                 try (ResultSet rs = statement.executeQuery()) {
                     if (rs.next()) {
-                        // Record exists, update it.
                         int id = rs.getInt("id");
-                        String status = grade >= 70 ? "COMPLETED" : "IN_PROGRESS";
-                        String updateQuery = "UPDATE user_progress SET score = ?, status = ?, last_attempt = CURRENT_TIMESTAMP WHERE id = ?";
+
+                        String status;
+                        if (grade >= 70) {
+                            status = "COMPLETED";
+                        } else {
+                            status = "IN_PROGRESS";
+                        }
+
+                        String updateQuery = "UPDATE user_progress SET score = ?, status = ?, programming_language_id = ?, last_attempt = CURRENT_TIMESTAMP WHERE id = ?";
                         try (PreparedStatement updateStmt = connection.prepareStatement(updateQuery)) {
                             updateStmt.setInt(1, grade);
                             updateStmt.setString(2, status);
-                            updateStmt.setInt(3, id);
+                            updateStmt.setInt(3, programmingLanguageId);
+                            updateStmt.setInt(4, id);
                             int rowsAffected = updateStmt.executeUpdate();
                             return rowsAffected > 0;
                         }
                     } else {
-                        String status = grade >= 70 ? "COMPLETED" : "IN_PROGRESS";
-                        String insertQuery = "INSERT INTO user_progress (user_id, question_id, score, status, last_attempt) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)";
+                        String status;
+                        if (grade >= 70) {
+                            status = "COMPLETED";
+                        } else {
+                            status = "IN_PROGRESS";
+                        }
+
+                        String insertQuery = "INSERT INTO user_progress (user_id, question_id, programming_language_id, score, status, last_attempt) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
                         try (PreparedStatement insertStmt = connection.prepareStatement(insertQuery)) {
                             insertStmt.setInt(1, userId);
                             insertStmt.setInt(2, questionId);
-                            insertStmt.setInt(3, grade);
-                            insertStmt.setString(4, status);
+                            insertStmt.setInt(3, programmingLanguageId);
+                            insertStmt.setInt(4, grade);
+                            insertStmt.setString(5, status);
                             int rowsInserted = insertStmt.executeUpdate();
                             return rowsInserted > 0;
                         }
@@ -68,11 +91,9 @@ public class UserProgressRepositoryImpl {
 
     /**
      * Gets the user's progress for a specific programming language.
-     * Calculates completion statistics and returns detailed progress information.
-     *
      * @param userId     The ID of the user.
      * @param languageId The ID of the programming language.
-     * @return A map containing progress data: progressPercentage, completedQuestions, totalQuestions, and progressDetails.
+     * @return A map containing progress progressPercentage, completedQuestions, totalQuestions, and progressDetails.
      * @throws SQLException if a database error occurs.
      */
     public Map<String, Object> getUserProgressForLanguage(int userId, int languageId) throws SQLException {
@@ -106,7 +127,6 @@ public class UserProgressRepositoryImpl {
                         questionProgress.put("question", questionData);
 
                         String status = rs.getString("status");
-                        //f no progress record exists
                         if (status == null) {
                             status = "NOT_STARTED";
                         }

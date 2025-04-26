@@ -6,6 +6,7 @@ import codeify.entities.User;
 import codeify.persistance.implementations.ProgrammingLanguageRepositoryImpl;
 import codeify.persistance.implementations.QuestionRepositoryImpl;
 import codeify.persistance.implementations.UserRepositoryImpl;
+import codeify.service.implementations.StatisticsService;
 import codeify.util.passwordHash;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static codeify.util.passwordHash.hashPassword;
@@ -42,7 +44,6 @@ public class AdminController {
         }
     }
 
-    // Add user
     @PostMapping("/add_user")
     public ResponseEntity<String> addUser(@RequestBody User user) {
         try{
@@ -285,6 +286,19 @@ public class AdminController {
         } catch (Exception e) {
             return ResponseEntity.status(500)
                     .body("Internal server error: " + e.getMessage());
+        }
+    }
+
+    @Autowired
+    private StatisticsService statisticsService;
+
+    @GetMapping("/statistics")
+    public ResponseEntity<?> getStatistics() {
+        try {
+            Map<String, Object> statistics = statisticsService.getAdminStatistics();
+            return ResponseEntity.ok(statistics);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error fetching statistics: " + e.getMessage());
         }
     }
 }

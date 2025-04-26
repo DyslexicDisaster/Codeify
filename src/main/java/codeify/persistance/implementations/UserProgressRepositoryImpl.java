@@ -150,4 +150,156 @@ public class UserProgressRepositoryImpl {
             }
         }
     }
+
+    /**
+     * Gets the total number of question attempts across all users
+     *
+     * @return The total number of attempts
+     * @throws SQLException if a database error occurs
+     */
+    public int getTotalAttempts() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM user_progress";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? rs.getInt(1) : 0;
+        }
+    }
+
+    /**
+     * Gets the total number questions completed by all users
+     *
+     * @return The total number of completed questions
+     * @throws SQLException if a database error occurs
+     */
+    public int getTotalCompletedQuestions() throws SQLException {
+        String sql = "SELECT COUNT(*) FROM user_progress WHERE status = 'COMPLETED'";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            return rs.next() ? rs.getInt(1) : 0;
+        }
+    }
+
+    /**
+     * Gets the number of attempts for a specific day of the week monday = 1 and sunday =7
+     *
+     * @param dayOfWeek The day of the week from 1 to 7
+     * @return The number of attempts on that day
+     * @throws SQLException if a database error occurs
+     */
+    public int getAttemptsForDayOfWeek(int dayOfWeek) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM user_progress WHERE DAYOFWEEK(last_attempt) = ?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, dayOfWeek);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        }
+    }
+
+    /**
+     * Gets the number of questions completed on a specific day
+     *
+     * @param dayOfWeek The day of week 1-7
+     * @return The number of completions on that day
+     * @throws SQLException if a database error occurs
+     */
+    public int getCompletionsForDayOfWeek(int dayOfWeek) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM user_progress WHERE DAYOFWEEK(last_attempt) = ? AND status = 'COMPLETED'";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, dayOfWeek);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        }
+    }
+
+    /**
+     * Gets the number of attempts for a specific question
+     *
+     * @param questionId The ID of the question
+     * @return The number of attempts for that question
+     * @throws SQLException if a database error occurs
+     */
+    public int getAttemptsForQuestion(int questionId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM user_progress WHERE question_id = ?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, questionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        }
+    }
+
+    /**
+     * Gets the rate of completion for questions
+     *
+     * @param questionId The ID of the question
+     * @return The completion rate as a percentage
+     * @throws SQLException if a database error occurs
+     */
+    public int getCompletionRateForQuestion(int questionId) throws SQLException {
+        String sql = "SELECT " +
+                "COUNT(*) AS attempts, " +
+                "SUM(CASE WHEN status = 'COMPLETED' THEN 1 ELSE 0 END) AS completions " +
+                "FROM user_progress WHERE question_id = ?";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, questionId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    int attempts = rs.getInt("attempts");
+                    int completions = rs.getInt("completions");
+                    return attempts > 0 ? (completions * 100 / attempts) : 0;
+                }
+                return 0;
+            }
+        }
+    }
+
+    /**
+     * Gets the average score for questions of a specific programming language
+     *
+     * @param languageId The ID of the programming language
+     * @return The average score
+     * @throws SQLException if a database error occurs
+     */
+    public int getAverageScoreForLanguage(int languageId) throws SQLException {
+        String sql = "SELECT AVG(up.score) AS avg_score " +
+                "FROM user_progress up " +
+                "JOIN questions q ON up.question_id = q.id " +
+                "WHERE q.programming_language_id = ? AND up.status = 'COMPLETED'";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, languageId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? (int)Math.round(rs.getDouble("avg_score")) : 0;
+            }
+        }
+    }
+
+    /**
+     * Gets the average score for questions of a specific difficulty
+     *
+     * @param difficulty The difficulty level
+     * @return The average score
+     * @throws SQLException if a database error occurs
+     */
+    public int getAverageScoreForDifficulty(String difficulty) throws SQLException {
+        String sql = "SELECT AVG(up.score) AS avg_score " +
+                "FROM user_progress up " +
+                "JOIN questions q ON up.question_id = q.id " +
+                "WHERE q.difficulty = ? AND up.status = 'COMPLETED'";
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, difficulty);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? (int)Math.round(rs.getDouble("avg_score")) : 0;
+            }
+        }
+    }
 }

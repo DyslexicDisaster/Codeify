@@ -12,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -112,10 +111,13 @@ public class AuthenticationController {
      * @param br The binding result for validation errors
      * @return  ResponseEntity with the status of the operation
      */
-    @PostMapping(path = "/register", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest req, BindingResult br) {
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(
+            @Valid @RequestBody RegisterRequest req,
+            BindingResult br
+    ) {
         if (br.hasErrors()) {
-            var errs = br.getFieldErrors().stream()
+            Map<String,String> errs = br.getFieldErrors().stream()
                     .collect(Collectors.toMap(
                             fe -> fe.getField(),
                             fe -> fe.getDefaultMessage()
@@ -135,7 +137,7 @@ public class AuthenticationController {
                         .body(Map.of("email", "Email already exists"));
             }
 
-            var u = new User(
+            User u = new User(
                     req.getUsername(),
                     req.getPassword(),
                     req.getEmail(),
@@ -152,6 +154,7 @@ public class AuthenticationController {
             return ResponseEntity.ok("User registered successfully");
 
         } catch (SQLException | NoSuchAlgorithmException | InvalidKeySpecException e) {
+            log.error("Registration error for {}: {}", req.getUsername(), e.getMessage());
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());

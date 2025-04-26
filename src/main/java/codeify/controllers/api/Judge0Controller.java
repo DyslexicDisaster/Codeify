@@ -33,12 +33,18 @@ public class Judge0Controller {
     @Autowired
     private UserProgressRepositoryImpl userProgressRepository;
 
+    /**
+     * Execute code using Judge0 API
+     *
+     * @param request Code execution request containing code, language, and question ID
+     * @return Response entity with the output of the code execution
+     */
     @PostMapping
     public ResponseEntity<?> executeCode(@RequestBody CodeExecutionRequest request) {
         try {
             String language = request.getLanguage().toLowerCase();
             String code = request.getCode();
-            Integer questionId = request.getQuestionId(); // Add questionId to the request
+            Integer questionId = request.getQuestionId();
 
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth != null && auth.isAuthenticated() && questionId != null) {

@@ -66,6 +66,12 @@ public class QuestionController {
         }
     }
 
+    /**
+     * Get a question by its ID
+     *
+     * @param questionId ID of the question
+     * @return Question object
+     */
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/question/{id}")
     public ResponseEntity<?> getQuestionById(@PathVariable("id") Integer questionId) {
@@ -106,6 +112,12 @@ public class QuestionController {
         }
     }
 
+    /**
+     * Grade the user's answer to a question
+     *
+     * @param gradeRequest The request containing the question ID and the user's answer
+     * @return ResponseEntity with the grading result
+     */
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/grade")
     public ResponseEntity<?> gradeAnswer(@RequestBody GradeRequest gradeRequest) {

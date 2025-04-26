@@ -28,19 +28,18 @@ public class ProgrammingLanguageRepositoryImpl implements ProgrammingLanguageRep
         // Query waiting for being executed
         String query = "SELECT * FROM programming_languages ORDER BY name";
 
-        // Sets up connection and executes statement
+
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(query);
              ResultSet resultSet = statement.executeQuery()) {
 
             while (resultSet.next()) {
 
-                // Adds properties to an empty language object
+
                 ProgrammingLanguage language = new ProgrammingLanguage();
                 language.setId(resultSet.getInt("id"));
                 language.setName(resultSet.getString("name"));
 
-                // Adds language to the list
                 languageList.add(language);
             }
         }

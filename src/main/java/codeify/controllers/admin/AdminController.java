@@ -35,7 +35,10 @@ public class AdminController {
     @Autowired
     private ProgrammingLanguageRepositoryImpl programmingLanguageRepositoryImpl;
 
-    // Get all users
+    /**
+     * Get all users
+     * @return List of users
+     */
     @GetMapping("/get_all_users")
     public ResponseEntity<?> getAllUsers() {
         try{
@@ -46,6 +49,11 @@ public class AdminController {
         }
     }
 
+    /**
+     * Add a new user
+     * @param user User object
+     * @return ResponseEntity with success or error message
+     */
     @PostMapping("/add_user")
     public ResponseEntity<String> addUser(@RequestBody User user) {
         try{
@@ -67,7 +75,11 @@ public class AdminController {
         }
     }
 
-    // Delete user
+    /**
+     * Delete a user by ID
+     * @param id User ID
+     * @return ResponseEntity with success or error message
+     */
     @DeleteMapping("/delete_user/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable int id) {
         try{
@@ -82,6 +94,11 @@ public class AdminController {
         }
     }
 
+    /**
+     * Update user information
+     * @param updatedUser User object with updated information
+     * @return ResponseEntity with success or error message
+     */
     @PutMapping("/update_user")
     public ResponseEntity<String> updateUser(@RequestBody User updatedUser) {
         try {
@@ -113,7 +130,12 @@ public class AdminController {
         }
     }
 
-    // Change user role
+    /**
+     * Change user role
+     * @param id User ID
+     * @param role New role to assign
+     * @return ResponseEntity with success or error message
+     */
     @PutMapping("/change_role/{id}")
     public ResponseEntity<String> changeRole(@PathVariable int id, @RequestParam String role) {
         try{
@@ -128,7 +150,12 @@ public class AdminController {
         }
     }
 
-    // Reset user password
+    /**
+     * Reset user password
+     * @param id User ID
+     * @param password New password
+     * @return ResponseEntity with success or error message
+     */
     @PutMapping("/reset_password/{id}")
     public ResponseEntity<String> resetPassword(@PathVariable int id, @RequestParam String password) {
         try{
@@ -145,7 +172,10 @@ public class AdminController {
         }
     }
 
-    // Get all questions
+    /**
+     * Get all questions
+     * @return List of questions
+     */
     @GetMapping("/get_all_questions")
     public ResponseEntity<?> getAllQuestions() {
         try {
@@ -179,7 +209,11 @@ public class AdminController {
     }
 
 
-    // Get question by ID
+    /**
+     * Get question by ID
+     * @param id Question ID
+     * @return ResponseEntity with question details or error message
+     */
     @GetMapping("/question/{id}")
     public ResponseEntity<?> getQuestionById(@PathVariable int id) {
         try {
@@ -194,6 +228,11 @@ public class AdminController {
         }
     }
 
+    /**
+     * Get all questions by language
+     * @param languageId ID of the language
+     * @return List of questions for the specified language
+     */
     @GetMapping("/get_questions_by_language/{languageId}")
     public ResponseEntity<?> getQuestionsByLanguage(@PathVariable int languageId) {
         try {
@@ -214,7 +253,11 @@ public class AdminController {
         }
     }
 
-    // Add question
+    /**
+     * Add a new question
+     * @param question Question object
+     * @return ResponseEntity with success or error message
+     */
     @PostMapping("/add_question")
     public ResponseEntity<String> addQuestion(@RequestBody Question question) {
         try {
@@ -229,7 +272,11 @@ public class AdminController {
         }
     }
 
-    // Update question
+    /**
+     * Update an existing question
+     * @param question Question object with updated information
+     * @return ResponseEntity with success or error message
+     */
     @PutMapping("/update_question")
     public ResponseEntity<String> updateQuestion(@RequestBody Question question) {
         try {
@@ -244,7 +291,11 @@ public class AdminController {
         }
     }
 
-    // Delete a question
+    /**
+     * Delete a question by ID
+     * @param id Question ID
+     * @return ResponseEntity with success or error message
+     */
     @DeleteMapping("/delete_question/{id}")
     public ResponseEntity<String> deleteQuestion(@PathVariable int id) {
         try {
@@ -259,6 +310,10 @@ public class AdminController {
         }
     }
 
+    /**
+     * Get all programming languages
+     * @return List of programming languages
+     */
     @GetMapping("/programming_languages")
     public ResponseEntity<?> getAllProgrammingLanguages() {
         try {
@@ -270,6 +325,11 @@ public class AdminController {
         }
     }
 
+    /**
+     * Get programming language by ID
+     * @param id Programming language ID
+     * @return ResponseEntity with programming language details or error message
+     */
     @GetMapping("/programming_language/{id}")
     public ResponseEntity<?> getProgrammingLanguageById(@PathVariable int id) {
         try {
@@ -285,6 +345,11 @@ public class AdminController {
         }
     }
 
+    /**
+     * Add a new programming language
+     * @param language ProgrammingLanguage object
+     * @return ResponseEntity with success or error message
+     */
     @PostMapping("/add_programming_language")
     public ResponseEntity<String> addProgrammingLanguage(@RequestBody ProgrammingLanguage language) {
         try {
@@ -300,6 +365,11 @@ public class AdminController {
         }
     }
 
+    /**
+     * Update an existing programming language
+     * @param language ProgrammingLanguage object with updated information
+     * @return ResponseEntity with success or error message
+     */
     @PutMapping("/update_programming_language")
     public ResponseEntity<String> updateProgrammingLanguage(@RequestBody ProgrammingLanguage language) {
         try {
@@ -315,6 +385,11 @@ public class AdminController {
         }
     }
 
+    /**
+     * Delete a programming language by ID
+     * @param id Programming language ID
+     * @return ResponseEntity with success or error message
+     */
     @DeleteMapping("/delete_programming_language/{id}")
     public ResponseEntity<String> deleteProgrammingLanguage(@PathVariable int id) {
         try {
@@ -333,6 +408,10 @@ public class AdminController {
     @Autowired
     private StatisticsService statisticsService;
 
+    /**
+     * Get admin statistics
+     * @return ResponseEntity with statistics data
+     */
     @GetMapping("/statistics")
     public ResponseEntity<?> getStatistics() {
         try {

@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,6 +48,13 @@ public class AdminController {
     @PostMapping("/add_user")
     public ResponseEntity<String> addUser(@RequestBody User user) {
         try{
+            if (user.getRegistrationDate() == null) {
+                user.setRegistrationDate(LocalDate.now());
+            }
+
+            if (user.getProvider() == null) {
+                user.setProvider("local");
+            }
             boolean added = userRepositoryImpl.register(user);
             if(added){
                 return ResponseEntity.ok("User added successfully");

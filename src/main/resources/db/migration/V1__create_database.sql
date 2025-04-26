@@ -141,9 +141,41 @@ DELIMITER $$
 -- Seed Questions (Starter Code)
     INSERT INTO questions(title,description,programming_language_id,question_type,difficulty,starter_code,ai_solution_required)
     VALUES
-        ('Even or Odd','Determine if number is even',1,'CODING','EASY','public class S{public boolean isEven(int n){return false;}}',TRUE),
-        ('Reverse Array','Reverse int[]',1,'CODING','MEDIUM','public class S{public int[] rev(int[] a){return a;}}',TRUE),
-        ('Find Missing Number','Find missing 0..n',1,'CODING','HARD','public class S{public int find(int[] a){return 0;}}',TRUE);
+        ('Even or Odd','Determine if number is even',1,'CODING','EASY','class Main {
+    public boolean isEven(int n) {
+        return false;
+    }
+
+    public static void main(String[] args) {
+        Main sol = new Main();
+        System.out.println(sol.isEven(4));
+    }
+}',TRUE),
+        ('Reverse Array','Reverse int[]',1,'CODING','MEDIUM','class Main {
+    public int[] rev(int[] a) {
+        return a;
+    }
+
+    public static void main(String[] args) {
+        Main sol = new Main();
+        int[] arr = {1, 2, 3, 4, 5};
+        int[] result = sol.rev(arr);
+        for(int i : result) {
+            System.out.print(i + " ");
+        }
+    }
+}',TRUE),
+        ('Find Missing Number','Find missing 0..n',1,'CODING','HARD','class Main {
+    public int find(int[] a) {
+        return 0;
+    }
+
+    public static void main(String[] args) {
+        Main sol = new Main();
+        int[] arr = {0, 1, 3, 4, 5};
+        System.out.println(sol.find(arr));
+    }
+}',TRUE);
 
 -- Seed Logic Questions (Java)
     INSERT INTO questions(title,description,programming_language_id,question_type,difficulty,correct_answer)

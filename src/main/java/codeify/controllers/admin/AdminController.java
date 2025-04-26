@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -149,11 +150,34 @@ public class AdminController {
     public ResponseEntity<?> getAllQuestions() {
         try {
             List<Question> questions = questionRepositoryImpl.getQuestions();
+
+            // Check if the list is empty
+            if (questions.isEmpty()) {
+                return ResponseEntity.ok(new ArrayList<>());
+            }
+
+            // Ensure all questions have programming language info
+            for (Question question : questions) {
+                if (question.getProgrammingLanguage() == null || question.getProgrammingLanguage().getId() == 0) {
+                    try {
+                        ProgrammingLanguage language = programmingLanguageRepositoryImpl.getProgrammingLanguageById(
+                                question.getProgrammingLanguage().getId());
+                        question.setProgrammingLanguage(language);
+                    } catch (Exception e) {
+                        ProgrammingLanguage defaultLang = new ProgrammingLanguage();
+                        defaultLang.setId(0);
+                        defaultLang.setName("Unknown");
+                        question.setProgrammingLanguage(defaultLang);
+                    }
+                }
+            }
+
             return ResponseEntity.ok(questions);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Internal server error: " + e.getMessage());
+            return ResponseEntity.status(500).body("Error fetching questions: " + e.getMessage());
         }
     }
+
 
     // Get question by ID
     @GetMapping("/question/{id}")
@@ -170,14 +194,23 @@ public class AdminController {
         }
     }
 
-    // Get questions by programming language
-    @GetMapping("/questions/language/{languageId}")
+    @GetMapping("/get_questions_by_language/{languageId}")
     public ResponseEntity<?> getQuestionsByLanguage(@PathVariable int languageId) {
         try {
-            List<Question> questions = questionRepositoryImpl.getQuestionByLanguage(languageId);
+            List<Question> questions;
+            if (languageId > 0) {
+                questions = questionRepositoryImpl.getQuestionByLanguage(languageId);
+            } else {
+                questions = questionRepositoryImpl.getQuestions();
+            }
+
+            if (questions.isEmpty()) {
+                return ResponseEntity.ok(new ArrayList<>());
+            }
+
             return ResponseEntity.ok(questions);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Internal server error: " + e.getMessage());
+            return ResponseEntity.status(500).body("Error fetching questions: " + e.getMessage());
         }
     }
 

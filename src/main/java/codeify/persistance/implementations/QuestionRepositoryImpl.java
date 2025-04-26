@@ -7,10 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +38,6 @@ public class QuestionRepositoryImpl implements QuestionRepository {
                     programmingLanguage.setId(resultSet.getInt("programming_language_id"));
                     question.setProgrammingLanguage(programmingLanguage);
 
-                    // Sets enums
                     question.setQuestionType(Question.QuestionType.valueOf(resultSet.getString("question_type")));
                     question.setDifficulty(Question.Difficulty.valueOf(resultSet.getString("difficulty")));
 
@@ -146,7 +142,11 @@ public class QuestionRepositoryImpl implements QuestionRepository {
     @Override
     public List<Question> getQuestions() throws SQLException {
         List<Question> questionList = new ArrayList<>();
-        String query = "SELECT * FROM questions ORDER BY title";
+        String query = "SELECT q.*, pl.id as lang_id, pl.name as language_name " +
+                "FROM questions q " +
+                "LEFT JOIN programming_languages pl ON q.programming_language_id = pl.id " +
+                "ORDER BY q.title";
+
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(query);
              ResultSet resultSet = statement.executeQuery()) {
@@ -158,16 +158,26 @@ public class QuestionRepositoryImpl implements QuestionRepository {
                 question.setDescription(resultSet.getString("description"));
 
                 ProgrammingLanguage programmingLanguage = new ProgrammingLanguage();
-                programmingLanguage.setId(resultSet.getInt("programming_language_id"));
+                programmingLanguage.setId(resultSet.getInt("lang_id"));
+                programmingLanguage.setName(resultSet.getString("language_name"));
                 question.setProgrammingLanguage(programmingLanguage);
 
-                question.setQuestionType(Question.QuestionType.valueOf(resultSet.getString("question_type")));
-                question.setDifficulty(Question.Difficulty.valueOf(resultSet.getString("difficulty")));
+                try {
+                    question.setQuestionType(Question.QuestionType.valueOf(resultSet.getString("question_type")));
+                    question.setDifficulty(Question.Difficulty.valueOf(resultSet.getString("difficulty")));
+                } catch (IllegalArgumentException e) {
+                    question.setQuestionType(Question.QuestionType.CODING);
+                    question.setDifficulty(Question.Difficulty.EASY);
+                }
 
                 question.setStarterCode(resultSet.getString("starter_code"));
                 question.setAiSolutionRequired(resultSet.getBoolean("ai_solution_required"));
                 question.setCorrectAnswer(resultSet.getString("correct_answer"));
-                question.setCreatedAt(resultSet.getTimestamp("created_at").toLocalDateTime());
+
+                Timestamp createdAt = resultSet.getTimestamp("created_at");
+                if (createdAt != null) {
+                    question.setCreatedAt(createdAt.toLocalDateTime());
+                }
 
                 questionList.add(question);
             }

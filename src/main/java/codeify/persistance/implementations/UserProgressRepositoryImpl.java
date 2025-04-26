@@ -322,4 +322,68 @@ public class UserProgressRepositoryImpl {
             }
         }
     }
+
+    /**
+     * Gets the most attempted questions directly from the database
+     *
+     * @return List of maps containing question id, title, and attempt count
+     * @throws SQLException if a database error occurs
+     */
+    public List<Map<String, Object>> getMostAttemptedQuestions() throws SQLException {
+        String sql = "SELECT q.id, q.title, COUNT(up.id) as attempts " +
+                "FROM user_progress up " +
+                "JOIN questions q ON up.question_id = q.id " +
+                "GROUP BY q.id, q.title " +
+                "ORDER BY attempts DESC " +
+                "LIMIT 5";
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Map<String, Object> questionData = new HashMap<>();
+                questionData.put("id", rs.getInt("id"));
+                questionData.put("title", rs.getString("title"));
+                questionData.put("attempts", rs.getInt("attempts"));
+                result.add(questionData);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Gets the questions with the lowest completion rates directly from the database
+     *
+     * @return List of maps containing question id, title, and completion rate
+     * @throws SQLException if a database error occurs
+     */
+    public List<Map<String, Object>> getLowestCompletionRateQuestions() throws SQLException {
+        String sql = "SELECT q.id, q.title, " +
+                "COUNT(up.id) as attempts, " +
+                "SUM(CASE WHEN up.status = 'COMPLETED' THEN 1 ELSE 0 END) as completions, " +
+                "(SUM(CASE WHEN up.status = 'COMPLETED' THEN 1 ELSE 0 END) * 100.0 / COUNT(up.id)) as completion_rate " +
+                "FROM questions q " +
+                "LEFT JOIN user_progress up ON q.id = up.question_id " +
+                "GROUP BY q.id, q.title " +
+                "HAVING COUNT(up.id) > 0 " +
+                "ORDER BY completion_rate ASC " +
+                "LIMIT 5";
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Map<String, Object> questionData = new HashMap<>();
+                questionData.put("id", rs.getInt("id"));
+                questionData.put("title", rs.getString("title"));
+                questionData.put("completionRate", (int)Math.round(rs.getDouble("completion_rate")));
+                result.add(questionData);
+            }
+        }
+        return result;
+    }
 }

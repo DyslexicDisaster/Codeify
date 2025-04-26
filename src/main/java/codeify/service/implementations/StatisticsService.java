@@ -79,6 +79,7 @@ public class StatisticsService {
         return userStats;
     }
 
+
     private Map<String, Object> getQuestionStatistics() throws SQLException {
         Map<String, Object> questionStats = new HashMap<>();
 
@@ -112,10 +113,10 @@ public class StatisticsService {
         }
         questionStats.put("questionsByDifficulty", questionsByDifficulty);
 
-        List<Map<String, Object>> mostAttemptedQuestions = getMostAttemptedQuestions(allQuestions);
+        List<Map<String, Object>> mostAttemptedQuestions = userProgressRepository.getMostAttemptedQuestions();
         questionStats.put("mostAttemptedQuestions", mostAttemptedQuestions);
 
-        List<Map<String, Object>> lowestCompletionRateQuestions = getLowestCompletionRateQuestions(allQuestions);
+        List<Map<String, Object>> lowestCompletionRateQuestions = userProgressRepository.getLowestCompletionRateQuestions();
         questionStats.put("lowestCompletionRateQuestions", lowestCompletionRateQuestions);
 
         return questionStats;
@@ -169,56 +170,6 @@ public class StatisticsService {
         }
 
         return weeklyActivity;
-    }
-
-    private List<Map<String, Object>> getMostAttemptedQuestions(List<Question> questions) {
-        List<Map<String, Object>> result = new ArrayList<>();
-
-        for (int i = 0; i < Math.min(5, questions.size()); i++) {
-            Question question = questions.get(i);
-            Map<String, Object> questionData = new HashMap<>();
-
-            questionData.put("id", question.getId());
-            questionData.put("title", question.getTitle());
-
-            try {
-                int attempts = userProgressRepository.getAttemptsForQuestion(question.getId());
-                questionData.put("attempts", attempts);
-            } catch (SQLException e) {
-                questionData.put("attempts", 0);
-            }
-
-            result.add(questionData);
-        }
-
-        result.sort((a, b) -> Integer.compare((Integer)b.get("attempts"), (Integer)a.get("attempts")));
-
-        return result.subList(0, Math.min(5, result.size()));
-    }
-
-    private List<Map<String, Object>> getLowestCompletionRateQuestions(List<Question> questions) {
-        List<Map<String, Object>> result = new ArrayList<>();
-
-        for (int i = 0; i < Math.min(10, questions.size()); i++) {
-            Question question = questions.get(i);
-            Map<String, Object> questionData = new HashMap<>();
-
-            questionData.put("id", question.getId());
-            questionData.put("title", question.getTitle());
-
-            try {
-                int completionRate = userProgressRepository.getCompletionRateForQuestion(question.getId());
-                questionData.put("completionRate", completionRate);
-            } catch (SQLException e) {
-                questionData.put("completionRate", 0);
-            }
-
-            result.add(questionData);
-        }
-
-        result.sort(Comparator.comparingInt(a -> (Integer)a.get("completionRate")));
-
-        return result.subList(0, Math.min(5, result.size()));
     }
 
     private List<Map<String, Object>> getAverageScoreByLanguage() throws SQLException {

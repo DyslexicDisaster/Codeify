@@ -3,7 +3,9 @@ package codeify.controllers.api;
 import codeify.entities.GradeRequest;
 import codeify.entities.Question;
 import codeify.entities.User;
+import codeify.entities.UserProgress;
 import codeify.persistance.implementations.QuestionRepositoryImpl;
+import codeify.persistance.implementations.UserProgressRepositoryImpl;
 import codeify.service.implementations.LastAttemptService;
 import codeify.service.interfaces.AiEvaluationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,9 @@ public class QuestionController {
 
     @Autowired
     private LastAttemptService lastAttemptService;
+
+    @Autowired
+    private UserProgressRepositoryImpl userProgressRepository;
 
     /**
      * Get all questions by language
@@ -84,7 +89,6 @@ public class QuestionController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/last-attempt/{questionId}")
     public ResponseEntity<?> getLastAttempt(@PathVariable("questionId") Integer questionId) {
-        // Get the current user from the security context
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not logged in");
@@ -102,12 +106,6 @@ public class QuestionController {
         }
     }
 
-    /**
-     * Grades a user's answer by evaluating it using the AI service and returns the result.
-     *
-     * @param gradeRequest a GradeRequest object containing the question ID and the user's answer
-     * @return a ResponseEntity containing a JSON object with keys "grade", "feedback", and "message"
-     */
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/grade")
     public ResponseEntity<?> gradeAnswer(@RequestBody GradeRequest gradeRequest) {
@@ -142,16 +140,51 @@ public class QuestionController {
                 grade = 0;
             }
 
+            userProgressRepository.updateUserProgress(user.getUserId(), gradeRequest.getQuestionId(), grade);
+
+            // Get the current status
+            UserProgress.ProgressStatus status = grade >= 70 ?
+                    UserProgress.ProgressStatus.COMPLETED :
+                    UserProgress.ProgressStatus.IN_PROGRESS;
+
             // Build the JSON response.
             Map<String, Object> response = new HashMap<>();
             response.put("grade", grade);
             response.put("feedback", evaluationResult.get("feedback"));
             response.put("message", "Answer graded successfully");
+            response.put("status", status.name());
+            response.put("passed", grade >= 70);
+            response.put("questionId", gradeRequest.getQuestionId());
+            response.put("languageId", question.getProgrammingLanguage().getId());
             return ResponseEntity.ok(response);
 
         } catch (SQLException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error grading answer: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Get user progress for a specific programming language
+     * This endpoint was missing or incomplete
+     */
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/progress")
+    public ResponseEntity<?> getUserProgress(@RequestParam(required = true) Integer languageId) {
+        // Get the current user from the security context
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not logged in");
+        }
+
+        User user = (User) auth.getPrincipal();
+
+        try {
+            Map<String, Object> progressData = userProgressRepository.getUserProgressForLanguage(user.getUserId(), languageId);
+            return ResponseEntity.ok(progressData);
+        } catch (SQLException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error retrieving progress: " + e.getMessage());
         }
     }
 }

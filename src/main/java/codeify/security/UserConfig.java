@@ -1,11 +1,11 @@
 package codeify.security;
 
+import codeify.entities.User;
 import codeify.persistance.interfaces.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-
 import java.sql.SQLException;
 
 @Configuration
@@ -21,8 +21,9 @@ public class UserConfig {
     public UserDetailsService userDetailsService() {
         return principal -> {
             try {
-                // lookup by username, then by email
+                // First try to find by username
                 return userRepository.findByUsername(principal)
+                        // If not found, try email
                         .or(() -> {
                             try {
                                 return userRepository.findByEmail(principal);
@@ -30,15 +31,10 @@ public class UserConfig {
                                 throw new RuntimeException(e);
                             }
                         })
-                        .map(u -> org.springframework.security.core.userdetails.User
-                                .withUsername(u.getUsername())
-                                .password(u.getPassword() != null ? u.getPassword() : "")
-                                .authorities("ROLE_" + u.getRole().name())
-                                .build()
-                        )
+                        // Throw exception if not found
                         .orElseThrow(() -> new UsernameNotFoundException("User not found: " + principal));
             } catch (SQLException e) {
-                throw new RuntimeException("Database error occurred while fetching user details", e);
+                throw new RuntimeException("Database error fetching user", e);
             }
         };
     }

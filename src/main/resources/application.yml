@@ -7,18 +7,3 @@ spring:
     enabled: true
     repair: true
     baseline-on-migrate: true
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: codeify.limited.info@gmail.com
-    password: fbdz ycvi wmlt nbqv
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-
-app:
-  client:
-    url: http://localhost:3000

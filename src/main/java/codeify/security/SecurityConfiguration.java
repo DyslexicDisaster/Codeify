@@ -71,6 +71,11 @@ public class SecurityConfiguration {
         this.oAuth2SuccessHandler = oAuth2SuccessHandler;
     }
 
+    /**
+     * Configures the OAuth2 access token response client for authorization code grant requests.
+     *
+     * @return the configured OAuth2AccessTokenResponseClient
+     */
     @Bean
     public OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest>
     customTokenResponseClient() {
@@ -89,14 +94,12 @@ public class SecurityConfiguration {
                     HttpRequest req, byte[] body, ClientHttpRequestExecution exec)
                     throws IOException {
 
-                logger.debug("=== OAuth2 Token Request ===");
                 logger.debug("URI:     {}", req.getURI());
                 logger.debug("Headers: {}", req.getHeaders());
                 logger.debug("Body:    {}", new String(body, StandardCharsets.UTF_8));
                 ClientHttpResponse response = exec.execute(req, body);
                 byte[] responseBody = StreamUtils.copyToByteArray(response.getBody());
 
-                logger.debug("=== OAuth2 Token Response ===");
                 logger.debug("Status:  {}", response.getStatusCode());
                 logger.debug("Headers: {}", response.getHeaders());
                 logger.debug("Body:    {}", new String(responseBody, StandardCharsets.UTF_8));

@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -45,10 +46,13 @@ public class AuthenticationController {
     @Autowired
     private PasswordResetService passwordResetService;
 
-    /*
+    /**
      * This endpoint is used to log in a user.
-     * It checks the username and password against the database.
-     * If they match, it generates a JWT token and returns it in the response.
+     *
+     * @param username The username of the user
+     * @param password The password of the user
+     * @param response The HTTP response object
+     * @return ResponseEntity with the status of the operation
      */
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(
@@ -79,9 +83,12 @@ public class AuthenticationController {
         }
     }
 
-    /*
+    /**
      * This endpoint is used to get the current user's information.
-     * It retrieves the username from the authentication object and fetches the user details from the database.
+     *
+     * @param authentication The authentication object containing user details
+     * @return ResponseEntity with the user's information
+     * @throws SQLException If there is an error accessing the database
      */
     @GetMapping("/me")
     public ResponseEntity<UserDto> getCurrentUser(Authentication authentication) throws SQLException {
@@ -98,18 +105,24 @@ public class AuthenticationController {
         return ResponseEntity.ok(dto);
     }
 
-    /*
+    /**
      * This endpoint is used to register a new user.
-     * It checks if the username and email already exist in the database.
-     * If they do not exist, it creates a new user and saves it to the database.
+     *
+     * @param req The registration request containing user details
+     * @param br The binding result for validation errors
+     * @return  ResponseEntity with the status of the operation
      */
-    @PostMapping("/register")
+    @PostMapping(
+            path     = "/register",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     public ResponseEntity<?> registerUser(
             @Valid @RequestBody RegisterRequest req,
             BindingResult br
     ) {
         if (br.hasErrors()) {
-            Map<String,String> errs = br.getFieldErrors().stream()
+            var errs = br.getFieldErrors().stream()
                     .collect(Collectors.toMap(
                             fe -> fe.getField(),
                             fe -> fe.getDefaultMessage()
@@ -129,7 +142,7 @@ public class AuthenticationController {
                         .body(Map.of("email", "Email already exists"));
             }
 
-            User u = new User(
+            var u = new User(
                     req.getUsername(),
                     req.getPassword(),
                     req.getEmail(),
@@ -146,16 +159,18 @@ public class AuthenticationController {
             return ResponseEntity.ok("User registered successfully");
 
         } catch (SQLException | NoSuchAlgorithmException | InvalidKeySpecException e) {
-            log.error("Registration error for {}: {}", req.getUsername(), e.getMessage());
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());
         }
     }
 
-    /*
-     * This endpoint is used to check if a username already exists in the database.
-     * It returns a boolean value indicating whether the username exists or not.
+    /**
+     * This endpoint is used to send a password reset link to the user's email address.
+     *
+     * @param email The email address of the user requesting a password reset
+     * @param request The HTTP request object
+     * @return ResponseEntity with the status of the operation
      */
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(
@@ -179,9 +194,12 @@ public class AuthenticationController {
         }
     }
 
-    /*
-     * This endpoint is used to reset the password using a token.
-     * It verifies the token and updates the user's password in the database.
+    /**
+     * This endpoint is used to reset the password of a user.
+     *
+     * @param token The password reset token
+     * @param newPassword The new password to set
+     * @return ResponseEntity with the status of the operation
      */
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestParam String token, @RequestParam String newPassword) {
